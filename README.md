@@ -1,1 +1,1 @@
-# library-logger
+# XamFilesLogger - logging library
