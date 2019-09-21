@@ -1,1 +1,1 @@
-# XamFilesLogger - logging library
+# XamFiles.FancyLogger
