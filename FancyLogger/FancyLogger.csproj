@@ -5,6 +5,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Andy Lech, The Xamarin Files</Authors>
     <Company>The Xamarin Files</Company>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
 </Project>
