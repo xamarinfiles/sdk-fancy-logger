@@ -3,8 +3,10 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <StartupObject>FancyLogger.Console.Program</StartupObject>
+    <StartupObject>FancyLogger.ExploratoryTests.Program</StartupObject>
     <ApplicationIcon />
+    <AssemblyName>FancyLogger.ExploratoryTests</AssemblyName>
+    <RootNamespace>FancyLogger.ExploratoryTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

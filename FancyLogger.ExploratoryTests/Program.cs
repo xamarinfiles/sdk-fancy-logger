@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace FancyLogger.Console
+namespace FancyLogger.ExploratoryTests
 {
     internal static class Program
     {
