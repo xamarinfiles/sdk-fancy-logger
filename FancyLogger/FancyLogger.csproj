@@ -1,14 +1,56 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-      <TargetFrameworks>netstandard2.0;net6.0;net7.0</TargetFrameworks>
-      <LangVersion>9.0</LangVersion>
+    <Version>1.0.1</Version>
+    <Copyright>Copyright © 2023 The Xamarin Files, Andy Lech</Copyright>
+    <TargetFrameworks>netstandard2.0;net6.0;net7.0</TargetFrameworks>
+    <LangVersion>9.0</LangVersion>
+    <Company>TheXamarinFiles</Company>
+    <Authors>TheXamarinFiles, Andy Lech</Authors>
+    <Title>A reusable .NET library to generate common formatted output for ILogger providers</Title>
+    <Description>A reusable .NET library to generate common formatted output for ILogger providers</Description>
+    <RepositoryUrl>https://github.com/xamarinfiles/library-fancy-logger</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/xamarinfiles/library-fancy-logger</PackageProjectUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>The-Xamarin-Files.png</PackageIcon>
+    <ApplicationIcon>The-Xamarin-Files.ico</ApplicationIcon>
+    <AssemblyName>XamarinFiles.$(MSBuildProjectName)</AssemblyName>
+    <RootNamespace>XamarinFiles.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
+    <AnalysisLevel>6.0-all</AnalysisLevel>
   </PropertyGroup>
 
-   <ItemGroup>
-     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
-     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
-     <PackageReference Include="System.Text.Json" Version="7.0.2" />
-   </ItemGroup>
+  <ItemGroup>
+    <Content Include="The-Xamarin-Files.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\The-Xamarin-Files.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
+    <PackageReference Include="Refit" Version="6.3.2" />
+    <PackageReference Include="System.Text.Json" Version="7.0.2" />
+    <PackageReference Include="XamarinFiles.PdHelpers.Refit" Version="1.0.0" />
+  </ItemGroup>
 
 </Project>

@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FancyLogger", "FancyLogger\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FancyLogger.Tests.Smoke", "FancyLogger.Tests.Smoke\FancyLogger.Tests.Smoke.csproj", "{3815E5C7-6DB3-4C50-8335-74B9A7A0ADAF}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "FancyLogger.Extensions", "FancyLogger.Extensions\FancyLogger.Extensions.shproj", "{A2717462-4048-4FA2-B274-E35522765413}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,5 +29,9 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A37E6E0F-1FA0-41CD-B115-00A3294D3463}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		FancyLogger.Extensions\FancyLogger.Extensions.projitems*{3815e5c7-6db3-4c50-8335-74b9a7a0adaf}*SharedItemsImports = 5
+		FancyLogger.Extensions\FancyLogger.Extensions.projitems*{a2717462-4048-4fa2-b274-e35522765413}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal
