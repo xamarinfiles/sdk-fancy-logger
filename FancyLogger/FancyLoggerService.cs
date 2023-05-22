@@ -256,7 +256,7 @@ namespace XamarinFiles.FancyLogger
         }
 
         public void LogValue(string label, string value, bool addIndent = false,
-            bool newLineAfter = false)
+            bool newLineAfter = true)
         {
             var message =
                 // Difference in prefix length: "Trace" vs "Information"
