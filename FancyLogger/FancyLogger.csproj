@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.0.1</Version>
+    <Version>1.0.3</Version>
     <Copyright>Copyright © 2023 The Xamarin Files, Andy Lech</Copyright>
     <TargetFrameworks>netstandard2.0;net6.0;net7.0</TargetFrameworks>
     <LangVersion>9.0</LangVersion>
@@ -49,7 +49,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
     <PackageReference Include="Refit" Version="6.3.2" />
-    <PackageReference Include="System.Text.Json" Version="7.0.2" />
     <PackageReference Include="XamarinFiles.PdHelpers.Refit" Version="1.0.0" />
   </ItemGroup>
 
