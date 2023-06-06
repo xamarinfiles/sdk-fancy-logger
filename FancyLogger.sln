@@ -38,7 +38,6 @@ Global
 		SolutionGuid = {A37E6E0F-1FA0-41CD-B115-00A3294D3463}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		FancyLogger.Extensions\FancyLogger.Extensions.projitems*{3815e5c7-6db3-4c50-8335-74b9a7a0adaf}*SharedItemsImports = 5
 		FancyLogger.Extensions\FancyLogger.Extensions.projitems*{a2717462-4048-4fa2-b274-e35522765413}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

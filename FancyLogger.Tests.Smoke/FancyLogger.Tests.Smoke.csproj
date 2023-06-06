@@ -12,6 +12,6 @@
     <PackageReference Include="XamarinFiles.FancyLogger" Version="1.0.5" />
   </ItemGroup>
 
-  <Import Project="..\FancyLogger.Extensions\FancyLogger.Extensions.projitems" Label="Shared" />
+  <!--<Import Project="..\FancyLogger.Extensions\FancyLogger.Extensions.projitems" Label="Shared" />-->
 
 </Project>

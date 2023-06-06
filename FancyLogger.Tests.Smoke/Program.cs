@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System;
-using XamarinFiles.FancyLogger.Extensions;
+//using XamarinFiles.FancyLogger.Extensions;
 using static System.Net.HttpStatusCode;
 using static XamarinFiles.PdHelpers.Refit.Bundlers;
 
@@ -23,7 +23,7 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke
 
         private static FancyLoggerService? LoggerService { get; }
 
-        private static AssemblyLoggerService? AssemblyLoggerService { get; }
+        //private static AssemblyLoggerService? AssemblyLoggerService { get; }
 
         #endregion
 
@@ -35,7 +35,7 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke
             {
 
                 LoggerService = new FancyLoggerService();
-                AssemblyLoggerService = new AssemblyLoggerService(LoggerService);
+                //AssemblyLoggerService = new AssemblyLoggerService(LoggerService);
             }
             catch (Exception exception)
             {
@@ -61,7 +61,7 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke
             {
                 /*  WARNING - Requires shared project copied from other repo  */
 
-                AssemblyLoggerService?.LogAssemblies(showCultureInfo: false);
+                //AssemblyLoggerService?.LogAssemblies(showCultureInfo: false);
 
                 /* /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ */
 
