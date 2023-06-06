@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AssemblyName>XamarinFiles.$(MSBuildProjectName)</AssemblyName>
+    <RootNamespace>XamarinFiles.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="XamarinFiles.FancyLogger" Version="1.0.5" />
+  </ItemGroup>
+
+  <!--<Import Project="..\FancyLogger.Extensions\FancyLogger.Extensions.projitems" Label="Shared" />-->
+
+</Project>

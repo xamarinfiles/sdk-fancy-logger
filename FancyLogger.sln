@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33424.131
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FancyLogger", "FancyLogger\FancyLogger.csproj", "{3D760A29-5B04-4F0C-8EB2-BEAC362EBF89}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FancyLogger.Tests.Smoke", "FancyLogger.Tests.Smoke\FancyLogger.Tests.Smoke.csproj", "{3815E5C7-6DB3-4C50-8335-74B9A7A0ADAF}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "FancyLogger.Extensions", "FancyLogger.Extensions\FancyLogger.Extensions.shproj", "{A2717462-4048-4FA2-B274-E35522765413}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B3CB7FFF-DA61-4C15-865B-ED4F3519C3C9}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+		TheXamarinFiles\The-Xamarin-Files.png = TheXamarinFiles\The-Xamarin-Files.png
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3D760A29-5B04-4F0C-8EB2-BEAC362EBF89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D760A29-5B04-4F0C-8EB2-BEAC362EBF89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D760A29-5B04-4F0C-8EB2-BEAC362EBF89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D760A29-5B04-4F0C-8EB2-BEAC362EBF89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3815E5C7-6DB3-4C50-8335-74B9A7A0ADAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3815E5C7-6DB3-4C50-8335-74B9A7A0ADAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3815E5C7-6DB3-4C50-8335-74B9A7A0ADAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3815E5C7-6DB3-4C50-8335-74B9A7A0ADAF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A37E6E0F-1FA0-41CD-B115-00A3294D3463}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		FancyLogger.Extensions\FancyLogger.Extensions.projitems*{a2717462-4048-4fa2-b274-e35522765413}*SharedItemsImports = 13
+	EndGlobalSection
+EndGlobal
