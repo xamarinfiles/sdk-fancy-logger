@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -9,9 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="XamarinFiles.FancyLogger" Version="1.0.5" />
+    <Compile Include="..\FancyLogger.Extensions\AssemblyLoggerService.cs"
+      Link="AssemblyLoggerService.cs" />
+    <Compile Include="..\FancyLogger.Tests.Smoke.Shared\Program.cs"
+      Link="Program.cs" />
   </ItemGroup>
 
-  <!--<Import Project="..\FancyLogger.Extensions\FancyLogger.Extensions.projitems" Label="Shared" />-->
+  <ItemGroup>
+    <PackageReference Include="XamarinFiles.FancyLogger" Version="1.0.6" />
+  </ItemGroup>
 
 </Project>

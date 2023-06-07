@@ -25,7 +25,7 @@ namespace XamarinFiles.FancyLogger
 
         void LogError(string format, params object[] args);
 
-        void LogExceptionRouter(Exception exception);
+        void LogException(Exception exception);
 
         void LogHeader(string format, params object[] args);
 
@@ -34,8 +34,9 @@ namespace XamarinFiles.FancyLogger
         void LogInfo(string format, bool addIndent = false,
             bool newLineAfter = true, params object[] args);
 
-        void LogObjectAsJson<T>(object obj, bool ignore = false,
-            bool keepNulls = false, bool newLineAfter = true);
+        void LogObject<T>(object obj, bool ignore = false,
+            bool keepNulls = false, string label = null,
+            bool newLineAfter = true);
 
         void LogProblemDetails(ProblemDetails problemDetails);
 
@@ -47,6 +48,19 @@ namespace XamarinFiles.FancyLogger
 
         void LogWarning(string format,  bool addIndent = false,
             bool newLineAfter = true, params object[] args);
+
+        #endregion
+
+        #region Deprecated Methods
+
+        [Obsolete("This method is obsolete. Call LogException instead.",
+            error: false)]
+        void LogExceptionRouter(Exception exception);
+
+        [Obsolete("This method is obsolete. Call LogObject instead.",
+            error: false)]
+        void LogObjectAsJson<T>(object obj, bool ignore = false,
+            bool keepNulls = false, bool newLineAfter = true);
 
         #endregion
     }

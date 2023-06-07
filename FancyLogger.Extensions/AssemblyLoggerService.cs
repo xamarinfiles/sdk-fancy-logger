@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -11,21 +10,22 @@ using static XamarinFiles.FancyLogger.Characters;
 
 namespace XamarinFiles.FancyLogger.Extensions
 {
-    // Copy to each tester until get around anti-virus flag for assembly passing
+    // Copy folder to each repo and add to each solution as shared project
+    // until able to bypass anti-virus flag for assembly passing
     internal class AssemblyLoggerService
     {
         #region Fields
 
-        private readonly string AncestorPath;
+        private readonly string _ancestorPath;
 
-        private readonly string AssemblyPath;
+        private readonly string _assemblyPath;
+
+        // TODO Change to true or eliminate when add more CultureInfo processing
+        private const bool DefaultShowCultureInfo = true;
 
         private const string OrganizationPrefix = "XamarinFiles";
 
         private const string PackagePrefix = OrganizationPrefix + ".";
-
-        // TODO Change to true or eliminate when add more CultureInfo processing
-        private const bool DefaultShowCultureInfo = true;
 
         #endregion
 
@@ -40,8 +40,8 @@ namespace XamarinFiles.FancyLogger.Extensions
         public AssemblyLoggerService(FancyLoggerService loggerService)
         {
             LoggerService = loggerService;
-            AssemblyPath = Assembly.GetExecutingAssembly().Location;
-            AncestorPath = GetAncestorPath(AssemblyPath);
+            _assemblyPath = Assembly.GetExecutingAssembly().Location;
+            _ancestorPath = GetAncestorPath(_assemblyPath);
         }
 
         #endregion
@@ -60,17 +60,13 @@ namespace XamarinFiles.FancyLogger.Extensions
         {
             ShowCultureInfo = showCultureInfo;
 
-            const string executingAssemblyLabel = "Executing Assembly";
-            const string domainAssemblyLabel = "Domain Assembly";
-            const string referenceAssemblyLabel = "Reference Assembly";
-
             LoggerService.LogHeader(OrganizationPrefix + " Assemblies");
 
             // Executing Assembly
 
             var executingAssembly = Assembly.GetExecutingAssembly();
 
-            LogAssembly(executingAssemblyLabel, executingAssembly);
+            LogExecutingAssembly(executingAssembly);
 
             // Domain Assemblies
 
@@ -79,25 +75,24 @@ namespace XamarinFiles.FancyLogger.Extensions
                     .ToList()
                     .Where(assembly => assembly.FullName is not null
                         && assembly.FullName.StartsWith(PackagePrefix)
-                        && assembly.Location != AssemblyPath)
+                        && assembly.Location != _assemblyPath)
                     .OrderBy(assembly => assembly.FullName);
 
             foreach (var domainAssembly in domainAssemblies)
             {
-
-                LogAssembly(domainAssemblyLabel, domainAssembly);
+                LogDomainAssembly(domainAssembly);
 
                 var referenceAssemblyNames =
                     domainAssembly.GetReferencedAssemblies()
                         .ToList()
                         .Where(assemblyName => assemblyName?.FullName is not null
                             && assemblyName.FullName.StartsWith(PackagePrefix))
-                        .OrderBy(assembly => assembly.FullName);                    ;
+                        .OrderBy(assembly => assembly.FullName);
+                ;
 
                 foreach (var referencedAssemblyName in referenceAssemblyNames)
                 {
-                    LogAssemblyName(referenceAssemblyLabel,
-                        referencedAssemblyName);
+                    LogReferenceAssembly(referencedAssemblyName);
                 }
             }
         }
@@ -127,6 +122,20 @@ namespace XamarinFiles.FancyLogger.Extensions
             return ancestorPath;
         }
 
+        private void LogExecutingAssembly(Assembly? executingAssembly)
+        {
+            const string executingAssemblyLabel = "Executing Assembly";
+
+            LogAssembly(executingAssemblyLabel, executingAssembly);
+        }
+
+        private void LogDomainAssembly(Assembly? domainAssembly)
+        {
+            const string domainAssemblyLabel = "Domain Assembly";
+
+            LogAssembly(domainAssemblyLabel, domainAssembly);
+        }
+
         private void LogAssembly(string assemblyNameLabel, Assembly? assembly)
         {
             if (assembly == null)
@@ -141,8 +150,6 @@ namespace XamarinFiles.FancyLogger.Extensions
 
             LogTargetFramework(assembly);
 
-            LogBuildConfiguration(assembly);
-
             LogCultureInfo(assemblyName.CultureInfo);
 
             LogPublicKeyTokenOrLocation(assemblyName, assembly.Location);
@@ -150,7 +157,7 @@ namespace XamarinFiles.FancyLogger.Extensions
 
         private void LogName(string assemblyLabel,
             AssemblyName assemblyName, bool addIndent = false,
-            bool newLineAfter = false)
+            bool newLineAfter = true)
         {
             LoggerService.LogInfo($"{assemblyLabel}: {assemblyName.Name}",
                 addIndent, newLineAfter);
@@ -180,17 +187,6 @@ namespace XamarinFiles.FancyLogger.Extensions
                 addIndent, newLineAfter);
         }
 
-        private void LogBuildConfiguration(Assembly assembly,
-            bool addIndent = false, bool newLineAfter = false)
-        {
-            var debuggableAttribute =
-                assembly.GetCustomAttribute<DebuggableAttribute>();
-            var isDebugStr = debuggableAttribute != null ? "YES" : "NO";
-
-            LoggerService.LogValue("Debug Build",isDebugStr,
-                addIndent, newLineAfter);
-        }
-
         private void LogCultureInfo(CultureInfo? cultureInfo,
             bool addIndent = false, bool newLineAfter = false)
         {
@@ -215,15 +211,15 @@ namespace XamarinFiles.FancyLogger.Extensions
 
             if (publicKeyToken != string.Empty)
             {
-                LoggerService.LogValue("PublicKeyToken",publicKeyToken,
+                LoggerService.LogValue("PublicKeyToken", publicKeyToken,
                     addIndent, newLineAfter);
             }
             else if (!string.IsNullOrEmpty(assemblyLocation))
             {
                 var relativePath =
-                    Path.GetDirectoryName(assemblyLocation[AncestorPath.Length..]);
+                    Path.GetDirectoryName(assemblyLocation[_ancestorPath.Length..]);
 
-                LoggerService.LogValue("Location",relativePath,
+                LoggerService.LogValue("Location", relativePath,
                     addIndent, newLineAfter);
             }
             else
@@ -247,6 +243,13 @@ namespace XamarinFiles.FancyLogger.Extensions
             return byteString;
         }
 
+        private void LogReferenceAssembly(AssemblyName? referencedAssemblyName)
+        {
+            const string referenceAssemblyLabel = "Reference Assembly";
+
+            LogAssemblyName(referenceAssemblyLabel, referencedAssemblyName);
+        }
+
         private void LogAssemblyName(string assemblyNameLabel,
             AssemblyName? assemblyName)
         {
@@ -257,8 +260,6 @@ namespace XamarinFiles.FancyLogger.Extensions
 
             LogVersion(assemblyName, addIndent: true);
 
-            // TODO Easy way to get Build Configuration of referenced assembly?
-
             // TODO Easy way to get Target Framework of referenced assembly?
 
             LogCultureInfo(assemblyName.CultureInfo, addIndent: true);
@@ -267,7 +268,7 @@ namespace XamarinFiles.FancyLogger.Extensions
                 addIndent: true);
         }
 
-#endregion
+        #endregion
 
     }
 }
