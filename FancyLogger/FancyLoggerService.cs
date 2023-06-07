@@ -109,7 +109,7 @@ namespace XamarinFiles.FancyLogger
             }
             catch (Exception exception)
             {
-                LogExceptionRouter(exception);
+                LogException(exception);
             }
         }
 
@@ -121,7 +121,7 @@ namespace XamarinFiles.FancyLogger
         }
 
         // TODO Add toggle for LogError vs LogWarning
-        public void LogExceptionRouter(Exception exception)
+        public void LogException(Exception exception)
         {
             switch (exception)
             {
@@ -173,8 +173,9 @@ namespace XamarinFiles.FancyLogger
             _logger.LogInformation("{message}", message);
         }
 
-        public void LogObjectAsJson<T>(object obj, bool ignore = false,
-            bool keepNulls = false, bool newLineAfter = true)
+        public void LogObject<T>(object obj, bool ignore = false,
+            bool keepNulls = false, string label = null,
+            bool newLineAfter = true)
         {
             if (ignore || obj is null)
                 return;
@@ -187,12 +188,14 @@ namespace XamarinFiles.FancyLogger
                 if (problemDetails != null)
                     LogProblemDetails(problemDetails);
 
-                if (!string.IsNullOrWhiteSpace(formattedJson))
-                    LogTrace(formattedJson, newLineAfter);
+                if (string.IsNullOrWhiteSpace(formattedJson))
+                    return;
+
+                LogTrace($"{label}:" + NewLine + formattedJson, newLineAfter);
             }
             catch (Exception exception)
             {
-                LogExceptionRouter(exception);
+                LogException(exception);
             }
         }
 
@@ -204,7 +207,8 @@ namespace XamarinFiles.FancyLogger
 
             try
             {
-                LogWarning($"PROBLEMDETAILS - Title: '{problemDetails.Title}'",
+                LogWarning($"PROBLEMDETAILS", newLineAfter:false);
+                LogWarning($"Title: '{problemDetails.Title}'",
                     newLineAfter:false);
                 LogWarning($"Detail: '{problemDetails.Detail}'",
                     newLineAfter:false);
@@ -216,22 +220,22 @@ namespace XamarinFiles.FancyLogger
 
                 if (problemDetails.Errors?.Count > 0)
                 {
-                    LogDebug("Errors Dictionary:");
-                    LogObjectAsJson<Dictionary<string, string[]>>(
-                        problemDetails.Errors, newLineAfter: false);
+                    LogObject<Dictionary<string, string[]>>(
+                        problemDetails.Errors, label: "Errors Dictionary",
+                        newLineAfter: false);
                 }
 
                 // ReSharper disable once InvertIf
                 if (problemDetails.Extensions?.Count > 0)
                 {
-                    LogDebug("Extensions Dictionary:");
-                    LogObjectAsJson<Dictionary<string, object>>(
-                        problemDetails.Errors, newLineAfter: false);
+                    LogObject<Dictionary<string, object>>(
+                        problemDetails.Errors, label: "Extensions Dictionary",
+                        newLineAfter: false);
                 }
             }
             catch (Exception exception)
             {
-                LogExceptionRouter(exception);
+                LogException(exception);
             }
         }
 
@@ -283,6 +287,23 @@ namespace XamarinFiles.FancyLogger
 
         #endregion
 
+        #region Deprecated Public Methods
+
+        [Obsolete("This method is obsolete. Call LogException instead.", false)]
+        public void LogExceptionRouter(Exception exception)
+        {
+            LogException(exception);
+        }
+
+        [Obsolete("This method is obsolete. Call LogObject instead.", false)]
+        public void LogObjectAsJson<T>(object obj, bool ignore = false,
+            bool keepNulls = false, bool newLineAfter = true)
+        {
+            LogObject<T>(obj, ignore, keepNulls, newLineAfter: newLineAfter);
+        }
+
+        #endregion
+
         #region Private Methods
 
         // TODO Go back to allowing multiple levels like the old FL library
@@ -305,7 +326,7 @@ namespace XamarinFiles.FancyLogger
                 return;
 
             // TODO Document expectation of ProblemDetails or handle alternative
-            LogObjectAsJson<ProblemDetails>(apiException.Content);
+            LogObject<ProblemDetails>(apiException.Content);
         }
 
         private void LogCommonException(Exception exception, string outerLabel,
