@@ -1,10 +1,12 @@
-﻿using System.Diagnostics;
+﻿#define ASSEMBLY_LOGGING
+
+using System.Diagnostics;
 using System;
-//using XamarinFiles.FancyLogger.Extensions;
+using XamarinFiles.FancyLogger.Extensions;
 using static System.Net.HttpStatusCode;
 using static XamarinFiles.PdHelpers.Refit.Bundlers;
 
-namespace XamarinFiles.FancyLogger.Tests.Smoke
+namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
 {
     internal static class Program
     {
@@ -23,7 +25,9 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke
 
         private static FancyLoggerService? LoggerService { get; }
 
-        //private static AssemblyLoggerService? AssemblyLoggerService { get; }
+#if ASSEMBLY_LOGGING
+        private static AssemblyLoggerService? AssemblyLoggerService { get; }
+#endif
 
         #endregion
 
@@ -35,7 +39,9 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke
             {
 
                 LoggerService = new FancyLoggerService();
-                //AssemblyLoggerService = new AssemblyLoggerService(LoggerService);
+#if ASSEMBLY_LOGGING
+                AssemblyLoggerService = new AssemblyLoggerService(LoggerService);
+#endif
             }
             catch (Exception exception)
             {
@@ -59,16 +65,14 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke
         {
             try
             {
-                /*  WARNING - Requires shared project copied from other repo  */
-
-                //AssemblyLoggerService?.LogAssemblies(showCultureInfo: false);
-
-                /* /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ */
-
                 if (LoggerService is null)
                 {
                     return;
                 }
+
+#if ASSEMBLY_LOGGING
+                AssemblyLoggerService?.LogAssemblies(showCultureInfo: true);
+#endif
 
                 LoggerService?.LogHeader("FancyLogger Tests");
 

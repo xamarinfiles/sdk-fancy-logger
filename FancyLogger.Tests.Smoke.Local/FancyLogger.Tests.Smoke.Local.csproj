@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AssemblyName>XamarinFiles.$(MSBuildProjectName)</AssemblyName>
+    <RootNamespace>XamarinFiles.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\FancyLogger.Extensions\AssemblyLoggerService.cs"
+      Link="AssemblyLoggerService.cs" />
+    <Compile Include="..\FancyLogger.Tests.Smoke.Shared\Program.cs"
+      Link="Program.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FancyLogger\FancyLogger.csproj" />
+  </ItemGroup>
+
+</Project>
