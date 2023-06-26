@@ -9,14 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\FancyLogger.Extensions\AssemblyLoggerService.cs"
-      Link="AssemblyLoggerService.cs" />
-    <Compile Include="..\FancyLogger.Tests.Smoke.Shared\Program.cs"
-      Link="Program.cs" />
+    <Compile Include="..\FancyLogger.Extensions\AssemblyLoggerService.cs" Link="AssemblyLoggerService.cs" />
+    <Compile Include="..\FancyLogger.Tests.Smoke.Shared\Program.cs" Link="Program.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="XamarinFiles.FancyLogger" Version="1.0.6" />
+    <PackageReference Include="XamarinFiles.FancyLogger" Version="1.0.7" />
   </ItemGroup>
 
 </Project>
