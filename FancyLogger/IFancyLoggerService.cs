@@ -16,6 +16,10 @@ namespace XamarinFiles.FancyLogger
 
         string LoggerPrefix { get; }
 
+        char SubheaderChar { get; }
+
+        int SubheaderLength { get; }
+
         #endregion
 
         #region Methods
@@ -27,7 +31,9 @@ namespace XamarinFiles.FancyLogger
 
         void LogException(Exception exception);
 
-        void LogHeader(string format, params object[] args);
+        void LogFooter(string format, bool addEnd = false, params object[] args);
+
+        void LogHeader(string format, bool addStart = false, params object[] args);
 
         void LogHorizontalLine();
 
@@ -40,11 +46,13 @@ namespace XamarinFiles.FancyLogger
 
         void LogProblemDetails(ProblemDetails problemDetails);
 
+        void LogScalar(string label, string value,  bool addIndent = false,
+            bool newLineAfter = false);
+
+        void LogSubheader(string format, params object[] args);
+
         void LogTrace(string format, bool addIndent = false,
             bool newLineAfter = false, params object[] args);
-
-        void LogValue(string label, string value,  bool addIndent = false,
-            bool newLineAfter = false);
 
         void LogWarning(string format,  bool addIndent = false,
             bool newLineAfter = true, params object[] args);
@@ -61,6 +69,11 @@ namespace XamarinFiles.FancyLogger
             error: false)]
         void LogObjectAsJson<T>(object obj, bool ignore = false,
             bool keepNulls = false, bool newLineAfter = true);
+
+        [Obsolete("This method is obsolete. Call LogScalar instead.",
+            error: false)]
+        void LogValue(string label, string value,  bool addIndent = false,
+            bool newLineAfter = false);
 
         #endregion
     }

@@ -47,7 +47,7 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
             {
                 if (LoggerService is not null)
                 {
-                    LoggerService.LogExceptionRouter(exception);
+                    LoggerService.LogException(exception);
                 }
                 else
                 {
@@ -78,11 +78,17 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
 
                 // TODO Add updated test set from old Fancy Logger
 
+                LoggerService?.LogHeader("Header", addStart: true);
+
+                LoggerService?.LogSubheader("Subheader");
+
                 TestProblemDetailsLogger();
+
+                LoggerService?.LogFooter("Footer", addEnd: true);
             }
             catch (Exception exception)
             {
-                LoggerService?.LogExceptionRouter(exception);
+                LoggerService?.LogException(exception);
             }
         }
 
