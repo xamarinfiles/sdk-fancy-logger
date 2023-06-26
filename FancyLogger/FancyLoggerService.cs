@@ -20,6 +20,20 @@ namespace XamarinFiles.FancyLogger
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public class FancyLoggerService : IFancyLoggerService
     {
+        #region Fields - Defaults
+
+        private const int DefaultHeaderPaddingLength = 70;
+
+        private const char DefaultHeaderPaddingChar = '#';
+
+        private const string DefaultLoggerPrefix = "LOG";
+
+        private const int DefaultSubheaderPaddingLength = 60;
+
+        private const char DefaultSubheaderPaddingChar = '=';
+
+        #endregion
+
         #region Fields - Services
 
         private readonly ILogger _logger;
@@ -51,15 +65,19 @@ namespace XamarinFiles.FancyLogger
         // TODO Move parameters to options object
         // TODO Test with other log destinations after finish porting code
         public FancyLoggerService(ILogger logger = null,
-            string loggerPrefix = "LOG",
-            int headerPaddedLength = 70,
-            char headerPaddingChar = '#',
+            string loggerPrefix = DefaultLoggerPrefix,
+            int headerPaddedLength = DefaultHeaderPaddingLength,
+            char headerPaddingChar = DefaultHeaderPaddingChar,
+            int subheaderPaddedLength = DefaultSubheaderPaddingLength,
+            char subheaderPaddingChar = DefaultSubheaderPaddingChar,
             JsonSerializerOptions readJsonOptions = null,
             JsonSerializerOptions writeJsonOptions = null)
         {
             LoggerPrefix = loggerPrefix;
             HeaderLength = headerPaddedLength;
             HeaderChar = headerPaddingChar;
+            SubheaderLength = subheaderPaddedLength;
+            SubheaderChar = subheaderPaddingChar;
             ReadJsonOptions = readJsonOptions ?? DefaultReadOptions;
             WriteJsonOptions = writeJsonOptions ?? DefaultWriteJsonOptions;
 
@@ -78,6 +96,10 @@ namespace XamarinFiles.FancyLogger
         public string LoggerPrefix { get; }
 
         public JsonSerializerOptions ReadJsonOptions { get; }
+
+        public char SubheaderChar { get; }
+
+        public int SubheaderLength { get; }
 
         public JsonSerializerOptions WriteJsonOptions { get; }
 
@@ -148,8 +170,23 @@ namespace XamarinFiles.FancyLogger
             }
         }
 
-        public void LogHeader(string format, params object[] args)
+        public void LogFooter(string format, bool addEnd = false,
+            params object[] args)
         {
+            if (addEnd)
+                format += " - End";
+            var message = string.Format(format, args).Trim() + " ";
+            var paddedMessage =
+                message.PadRight(HeaderLength, HeaderChar);
+
+            LogInfo(paddedMessage, newLineAfter: true);
+        }
+
+        public void LogHeader(string format, bool addStart = false,
+            params object[] args)
+        {
+            if (addStart)
+                format += " - Start";
             var message = string.Format(format, args).Trim() + " ";
             var paddedMessage =
                 message.PadRight(HeaderLength, HeaderChar);
@@ -191,7 +228,8 @@ namespace XamarinFiles.FancyLogger
                 if (string.IsNullOrWhiteSpace(formattedJson))
                     return;
 
-                LogTrace($"{label}:" + NewLine + formattedJson, newLineAfter);
+                LogTrace($"{label}:" + NewLine + formattedJson,
+                    newLineAfter: newLineAfter);
             }
             catch (Exception exception)
             {
@@ -218,25 +256,39 @@ namespace XamarinFiles.FancyLogger
                 LogDebug($"Instance URL: {Indent}'{problemDetails.Instance}'");
                 LogDebug($"Type Info: {Indent}'{problemDetails.Type}'");
 
-                if (problemDetails.Errors?.Count > 0)
-                {
-                    LogObject<Dictionary<string, string[]>>(
-                        problemDetails.Errors, label: "Errors Dictionary",
-                        newLineAfter: false);
-                }
-
-                // ReSharper disable once InvertIf
-                if (problemDetails.Extensions?.Count > 0)
-                {
-                    LogObject<Dictionary<string, object>>(
-                        problemDetails.Errors, label: "Extensions Dictionary",
-                        newLineAfter: false);
-                }
+                LogObject<Dictionary<string, string[]>>(
+                    problemDetails.Errors, label: "Errors Dictionary",
+                    newLineAfter: false);
+                LogObject<Dictionary<string, object>>(
+                    problemDetails.Extensions, label: "Extensions Dictionary",
+                    newLineAfter: true);
             }
             catch (Exception exception)
             {
                 LogException(exception);
             }
+        }
+
+        public void LogScalar(string label, string value,
+            bool addIndent = false, bool newLineAfter = true)
+        {
+            var message =
+                // Difference in prefix length: "Trace" vs "Information"
+                new string(' ', 6) +
+                AddIndent(addIndent) + $"{label}{Indent}={Indent}{value}";
+            if (newLineAfter)
+                message += NewLine;
+
+            _logger.LogTrace("{message}", message);
+        }
+
+        public void LogSubheader(string format, params object[] args)
+        {
+            var message = string.Format(format, args).Trim() + " ";
+            var paddedMessage =
+                message.PadRight(SubheaderLength, SubheaderChar);
+
+            LogInfo(paddedMessage, newLineAfter: true);
         }
 
         public void LogTrace(string format, bool addIndent = false,
@@ -253,19 +305,6 @@ namespace XamarinFiles.FancyLogger
                     ? format
                     : string.Format(format, args));
 
-            if (newLineAfter)
-                message += NewLine;
-
-            _logger.LogTrace("{message}", message);
-        }
-
-        public void LogValue(string label, string value, bool addIndent = false,
-            bool newLineAfter = true)
-        {
-            var message =
-                // Difference in prefix length: "Trace" vs "Information"
-                new string(' ', 6) +
-                AddIndent(addIndent) + $"{label}{Indent}={Indent}{value}";
             if (newLineAfter)
                 message += NewLine;
 
@@ -289,17 +328,27 @@ namespace XamarinFiles.FancyLogger
 
         #region Deprecated Public Methods
 
-        [Obsolete("This method is obsolete. Call LogException instead.", false)]
+        [Obsolete("This method is obsolete. Call LogException instead.",
+            error: false)]
         public void LogExceptionRouter(Exception exception)
         {
             LogException(exception);
         }
 
-        [Obsolete("This method is obsolete. Call LogObject instead.", false)]
+        [Obsolete("This method is obsolete. Call LogObject instead.",
+            error: false)]
         public void LogObjectAsJson<T>(object obj, bool ignore = false,
             bool keepNulls = false, bool newLineAfter = true)
         {
             LogObject<T>(obj, ignore, keepNulls, newLineAfter: newLineAfter);
+        }
+
+        [Obsolete("This method is obsolete. Call LogScalar instead.",
+            error: false)]
+        public void LogValue(string label, string value, bool addIndent = false,
+            bool newLineAfter = false)
+        {
+            LogScalar(label, value, addIndent, newLineAfter);
         }
 
         #endregion
