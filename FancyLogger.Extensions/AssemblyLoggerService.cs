@@ -169,7 +169,7 @@ namespace XamarinFiles.FancyLogger.Extensions
             if (assemblyName.Version is null)
                 return;
 
-            LoggerService.LogValue("Version" + Indent,
+            LoggerService.LogScalar("Version" + Indent,
                 assemblyName.Version.ToString(), addIndent, newLineAfter);
         }
 
@@ -183,7 +183,7 @@ namespace XamarinFiles.FancyLogger.Extensions
             if (string.IsNullOrEmpty(frameworkName))
                 return;
 
-            LoggerService.LogValue("Framework", frameworkName,
+            LoggerService.LogScalar("Framework", frameworkName,
                 addIndent, newLineAfter);
         }
 
@@ -198,7 +198,7 @@ namespace XamarinFiles.FancyLogger.Extensions
                 ? "neutral"
                 : cultureInfo.DisplayName;
 
-            LoggerService.LogValue("Culture" + Indent, cultureName,
+            LoggerService.LogScalar("Culture" + Indent, cultureName,
                 addIndent, newLineAfter);
         }
 
@@ -211,7 +211,7 @@ namespace XamarinFiles.FancyLogger.Extensions
 
             if (publicKeyToken != string.Empty)
             {
-                LoggerService.LogValue("PublicKeyToken", publicKeyToken,
+                LoggerService.LogScalar("PublicKeyToken", publicKeyToken,
                     addIndent, newLineAfter);
             }
             else if (!string.IsNullOrEmpty(assemblyLocation))
@@ -219,7 +219,7 @@ namespace XamarinFiles.FancyLogger.Extensions
                 var relativePath =
                     Path.GetDirectoryName(assemblyLocation[_ancestorPath.Length..]);
 
-                LoggerService.LogValue("Location", relativePath,
+                LoggerService.LogScalar("Location", relativePath,
                     addIndent, newLineAfter);
             }
             else
