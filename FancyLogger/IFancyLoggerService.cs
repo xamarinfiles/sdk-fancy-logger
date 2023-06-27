@@ -22,14 +22,33 @@ namespace XamarinFiles.FancyLogger
 
         #endregion
 
-        #region Methods
+        #region Methods - Exceptions
+
+        // Exception Router
+
+        void LogException(Exception exception);
+
+        // Direct Access
+
+        void LogApiException(ApiException apiException);
+
+        void LogCommonException(Exception exception, string outerLabel,
+            string innerLabel = "INNER EXCEPTION");
+
+        void LogGeneralException(Exception exception);
+
+        void LogHttpRequestException(HttpRequestException requestException);
+
+        void LogJsonException(JsonException jsonException);
+
+        #endregion
+
+        #region Methods - Other
 
         void LogDebug(string format, bool addIndent = false,
             bool newLineAfter = false, params object[] args);
 
         void LogError(string format, params object[] args);
-
-        void LogException(Exception exception);
 
         void LogFooter(string format, bool addEnd = false, params object[] args);
 
