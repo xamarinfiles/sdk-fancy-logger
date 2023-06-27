@@ -105,7 +105,130 @@ namespace XamarinFiles.FancyLogger
 
         #endregion
 
-        #region Public Methods
+        #region Public Methods - Exceptions
+
+        // Exception Router
+
+        // TODO Add toggle for LogError vs LogWarning
+        public void LogException(Exception exception)
+        {
+            switch (exception)
+            {
+                case ValidationApiException validationException:
+                    LogApiException(validationException);
+
+                    break;
+                case ApiException apiException:
+                    LogApiException(apiException);
+
+                    break;
+                case HttpRequestException httpRequestException:
+                    LogHttpRequestException(httpRequestException);
+
+                    break;
+                case JsonException jsonException:
+                    LogJsonException(jsonException);
+
+                    break;
+                default:
+                    LogGeneralException(exception);
+
+                    break;
+            }
+        }
+
+        // Direct Access
+
+        public void LogApiException(ApiException apiException)
+        {
+            var request = apiException.RequestMessage;
+
+            LogCommonException(apiException, "API EXCEPTION");
+
+            LogWarning(
+                $"OPERATION:  {request.Method} - {apiException.Uri}" + NewLine);
+
+            if (string.IsNullOrWhiteSpace(apiException.Content))
+                return;
+
+            // TODO Document expectation of ProblemDetails or handle alternative
+            LogObject<ProblemDetails>(apiException.Content);
+        }
+
+        public void LogCommonException(Exception exception, string outerLabel,
+            string innerLabel = "INNER EXCEPTION")
+        {
+            LogWarning($"{outerLabel}:  {exception.Message}{NewLine}");
+
+            var innerExceptionMessage = exception.InnerException?.Message;
+
+            if (string.IsNullOrWhiteSpace(innerExceptionMessage))
+                return;
+
+            LogWarning($"{Indent}{innerLabel}:  {innerExceptionMessage}{NewLine}");
+        }
+
+        public void LogGeneralException(Exception exception)
+        {
+            LogCommonException(exception, "EXCEPTION");
+        }
+
+        [SuppressMessage("ReSharper", "MergeIntoPattern")]
+        public void LogHttpRequestException(HttpRequestException requestException)
+        {
+            const string outerExceptionLabel = "HTTP REQUEST EXCEPTION";
+            // TODO Use when > .NET Standard 2.0 for Xamarin.Forms
+            //var outerStatusCode = requestException.StatusCode;
+
+            string innerExceptionLabel;
+            HttpStatusCode? innerStatusCode = null;
+
+            // TODO Add more networking error conditions
+            switch (requestException.InnerException)
+            {
+                case SocketException socketException
+                    when socketException.SocketErrorCode == ConnectionRefused:
+
+                    innerExceptionLabel =
+                        "SOCKET EXCEPTION - ConnectionRefused";
+
+                    innerStatusCode = ServiceUnavailable;
+
+                    break;
+                case WebException webException
+                    when webException.Status == NameResolutionFailure:
+
+                    innerExceptionLabel =
+                        "WEB EXCEPTION - NameResolutionFailure";
+
+                    innerStatusCode = ServiceUnavailable;
+
+                    break;
+
+                default:
+                    innerExceptionLabel = "INNER EXCEPTION";
+
+                    break;
+            }
+
+            innerExceptionLabel += $"{innerStatusCode?.ToString() ?? ""}";
+
+            LogCommonException(requestException, outerExceptionLabel,
+                innerExceptionLabel);
+        }
+
+        public void LogJsonException(JsonException jsonException)
+        {
+            LogCommonException(jsonException, "JSON EXCEPTION");
+
+            LogWarning($"LINE:  {jsonException.LineNumber}"
+                       + $"{Indent}-{Indent}{jsonException.BytePositionInLine}");
+            LogWarning($"PATH:  {jsonException.Path}");
+        }
+
+        #endregion
+
+        #region Public Methods - Other
 
         public void LogDebug(string format, bool addIndent = false,
             bool newLineAfter = false, params object[] args)
@@ -140,34 +263,6 @@ namespace XamarinFiles.FancyLogger
             var message = string.Format(format + NewLine, args);
 
             _logger.LogError("{message}", message);
-        }
-
-        // TODO Add toggle for LogError vs LogWarning
-        public void LogException(Exception exception)
-        {
-            switch (exception)
-            {
-                case ValidationApiException validationException:
-                    LogApiException(validationException);
-
-                    break;
-                case ApiException apiException:
-                    LogApiException(apiException);
-
-                    break;
-                case HttpRequestException httpRequestException:
-                    LogHttpRequestException(httpRequestException);
-
-                    break;
-                case JsonException jsonException:
-                    LogJsonException(jsonException);
-
-                    break;
-                default:
-                    LogGeneralException(exception);
-
-                    break;
-            }
         }
 
         public void LogFooter(string format, bool addEnd = false,
@@ -360,93 +455,6 @@ namespace XamarinFiles.FancyLogger
         {
             // Explicit ident for alignment plus optional one for nesting
             return Indent + (addExtraIndent ? Indent : "");
-        }
-
-        private void LogApiException(ApiException apiException)
-        {
-            var request = apiException.RequestMessage;
-
-            LogCommonException(apiException, "API EXCEPTION");
-
-            LogWarning(
-                $"OPERATION:  {request.Method} - {apiException.Uri}" + NewLine);
-
-            if (string.IsNullOrWhiteSpace(apiException.Content))
-                return;
-
-            // TODO Document expectation of ProblemDetails or handle alternative
-            LogObject<ProblemDetails>(apiException.Content);
-        }
-
-        private void LogCommonException(Exception exception, string outerLabel,
-            string innerLabel = "INNER EXCEPTION")
-        {
-            LogWarning($"{outerLabel}:  {exception.Message}{NewLine}");
-
-            var innerExceptionMessage = exception.InnerException?.Message;
-
-            if (string.IsNullOrWhiteSpace(innerExceptionMessage))
-                return;
-
-            LogWarning($"{Indent}{innerLabel}:  {innerExceptionMessage}{NewLine}");
-        }
-
-        private void LogGeneralException(Exception exception)
-        {
-            LogCommonException(exception, "EXCEPTION");
-        }
-
-        [SuppressMessage("ReSharper", "MergeIntoPattern")]
-        private void LogHttpRequestException(HttpRequestException requestException)
-        {
-            const string outerExceptionLabel = "HTTP REQUEST EXCEPTION";
-            // TODO Use when > .NET Standard 2.0 for Xamarin.Forms
-            //var outerStatusCode = requestException.StatusCode;
-
-            string innerExceptionLabel;
-            HttpStatusCode? innerStatusCode = null;
-
-            // TODO Add more networking error conditions
-            switch (requestException.InnerException)
-            {
-                case SocketException socketException
-                    when socketException.SocketErrorCode == ConnectionRefused:
-
-                    innerExceptionLabel =
-                        "SOCKET EXCEPTION - ConnectionRefused";
-
-                    innerStatusCode = ServiceUnavailable;
-
-                    break;
-                case WebException webException
-                    when webException.Status == NameResolutionFailure:
-
-                    innerExceptionLabel =
-                        "WEB EXCEPTION - NameResolutionFailure";
-
-                    innerStatusCode = ServiceUnavailable;
-
-                    break;
-
-                default:
-                    innerExceptionLabel = "INNER EXCEPTION";
-
-                    break;
-            }
-
-            innerExceptionLabel += $"{innerStatusCode?.ToString() ?? ""}";
-
-            LogCommonException(requestException, outerExceptionLabel,
-                innerExceptionLabel);
-        }
-
-        private void LogJsonException(JsonException jsonException)
-        {
-            LogCommonException(jsonException, "JSON EXCEPTION");
-
-            LogWarning($"LINE:  {jsonException.LineNumber}"
-                       + $"{Indent}-{Indent}{jsonException.BytePositionInLine}");
-            LogWarning($"PATH:  {jsonException.Path}");
         }
 
         #endregion
