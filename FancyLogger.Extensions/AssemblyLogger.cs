@@ -5,14 +5,16 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
+using XamarinFiles.FancyLogger.Tests.Smoke.Local;
 using static System.Globalization.CultureInfo;
 using static XamarinFiles.FancyLogger.Characters;
 
 namespace XamarinFiles.FancyLogger.Extensions
 {
+    // Source: https://github.com/xamarinfiles/library-fancy-logger-extensions
     // Copy folder to each repo and add to each solution as shared project
     // until able to bypass anti-virus flag for assembly passing
-    internal class AssemblyLoggerService
+    internal class AssemblyLogger : IAssemblyLogger
     {
         #region Fields
 
@@ -31,15 +33,15 @@ namespace XamarinFiles.FancyLogger.Extensions
 
         #region Services
 
-        private FancyLoggerService LoggerService { get; }
+        private IFancyLogger FancyLogger { get; }
 
         #endregion
 
         #region Constructor
 
-        public AssemblyLoggerService(FancyLoggerService loggerService)
+        public AssemblyLogger(IFancyLogger fancyLogger)
         {
-            LoggerService = loggerService;
+            FancyLogger = fancyLogger;
             _assemblyPath = Assembly.GetExecutingAssembly().Location;
             _ancestorPath = GetAncestorPath(_assemblyPath);
         }
@@ -55,12 +57,12 @@ namespace XamarinFiles.FancyLogger.Extensions
 
         #region Methods
 
-        internal void LogAssemblies(
+        public void LogAssemblies(
             bool showCultureInfo = DefaultShowCultureInfo)
         {
             ShowCultureInfo = showCultureInfo;
 
-            LoggerService.LogHeader(OrganizationPrefix + " Assemblies");
+            FancyLogger.LogSection(OrganizationPrefix + " Assemblies");
 
             // Executing Assembly
 
@@ -159,7 +161,7 @@ namespace XamarinFiles.FancyLogger.Extensions
             AssemblyName assemblyName, bool addIndent = false,
             bool newLineAfter = true)
         {
-            LoggerService.LogInfo($"{assemblyLabel}: {assemblyName.Name}",
+            FancyLogger.LogInfo($"{assemblyLabel}: {assemblyName.Name}",
                 addIndent, newLineAfter);
         }
 
@@ -169,7 +171,7 @@ namespace XamarinFiles.FancyLogger.Extensions
             if (assemblyName.Version is null)
                 return;
 
-            LoggerService.LogScalar("Version" + Indent,
+            FancyLogger.LogScalar("Version" + Indent,
                 assemblyName.Version.ToString(), addIndent, newLineAfter);
         }
 
@@ -183,7 +185,7 @@ namespace XamarinFiles.FancyLogger.Extensions
             if (string.IsNullOrEmpty(frameworkName))
                 return;
 
-            LoggerService.LogScalar("Framework", frameworkName,
+            FancyLogger.LogScalar("Framework", frameworkName,
                 addIndent, newLineAfter);
         }
 
@@ -198,7 +200,7 @@ namespace XamarinFiles.FancyLogger.Extensions
                 ? "neutral"
                 : cultureInfo.DisplayName;
 
-            LoggerService.LogScalar("Culture" + Indent, cultureName,
+            FancyLogger.LogScalar("Culture" + Indent, cultureName,
                 addIndent, newLineAfter);
         }
 
@@ -211,7 +213,7 @@ namespace XamarinFiles.FancyLogger.Extensions
 
             if (publicKeyToken != string.Empty)
             {
-                LoggerService.LogScalar("PublicKeyToken", publicKeyToken,
+                FancyLogger.LogScalar("PublicKeyToken", publicKeyToken,
                     addIndent, newLineAfter);
             }
             else if (!string.IsNullOrEmpty(assemblyLocation))
@@ -219,13 +221,13 @@ namespace XamarinFiles.FancyLogger.Extensions
                 var relativePath =
                     Path.GetDirectoryName(assemblyLocation[_ancestorPath.Length..]);
 
-                LoggerService.LogScalar("Location", relativePath,
+                FancyLogger.LogScalar("Location", relativePath,
                     addIndent, newLineAfter);
             }
             else
             {
                 // TODO Easy way to get Location of referenced assembly?
-                LoggerService.LogWarning("No Public Key Token or Location",
+                FancyLogger.LogWarning("No Public Key Token or Location",
                     addIndent, newLineAfter);
             }
         }
