@@ -18,22 +18,8 @@ namespace XamarinFiles.FancyLogger
 {
     [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-    public class FancyLoggerService : IFancyLoggerService
+    public class FancyLogger : IFancyLogger
     {
-        #region Fields - Defaults
-
-        private const int DefaultHeaderPaddingLength = 70;
-
-        private const char DefaultHeaderPaddingChar = '#';
-
-        private const string DefaultLoggerPrefix = "LOG";
-
-        private const int DefaultSubheaderPaddingLength = 60;
-
-        private const char DefaultSubheaderPaddingChar = '=';
-
-        #endregion
-
         #region Fields - Services
 
         private readonly ILogger _logger;
@@ -42,7 +28,10 @@ namespace XamarinFiles.FancyLogger
 
         #endregion
 
-        #region Fields - JsonSerializerOptions
+        #region Fields - Options
+
+        public static readonly FancyLoggerOptions
+            DefaultLoggerOptions = new();
 
         public static readonly JsonSerializerOptions
             DefaultReadOptions = new()
@@ -62,26 +51,39 @@ namespace XamarinFiles.FancyLogger
 
         #region Constructor
 
-        // TODO Move parameters to options object
-        // TODO Test with other log destinations after finish porting code
-        public FancyLoggerService(ILogger logger = null,
-            string loggerPrefix = DefaultLoggerPrefix,
-            int headerPaddedLength = DefaultHeaderPaddingLength,
-            char headerPaddingChar = DefaultHeaderPaddingChar,
-            int subheaderPaddedLength = DefaultSubheaderPaddingLength,
-            char subheaderPaddingChar = DefaultSubheaderPaddingChar,
+        // TODO Test with other log destinations after finish porting test code
+        public FancyLogger(ILogger logger = null,
+            FancyLoggerOptions loggerOptions = null,
             JsonSerializerOptions readJsonOptions = null,
             JsonSerializerOptions writeJsonOptions = null)
         {
-            LoggerPrefix = loggerPrefix;
-            HeaderLength = headerPaddedLength;
-            HeaderChar = headerPaddingChar;
-            SubheaderLength = subheaderPaddedLength;
-            SubheaderChar = subheaderPaddingChar;
+            LoggerOptions = loggerOptions ?? DefaultLoggerOptions;
             ReadJsonOptions = readJsonOptions ?? DefaultReadOptions;
             WriteJsonOptions = writeJsonOptions ?? DefaultWriteJsonOptions;
 
-            _logger = logger ?? LoggerCreator.CreateLogger(LoggerPrefix);
+            AllLinesPrefixString = loggerOptions!.AllLines.PrefixString;
+            AllLinesPadLength = loggerOptions.AllLines.PadLength;
+            AllLinesPadString = loggerOptions.AllLines.PadString;
+
+            LongDividerLinesPadLength = loggerOptions.LongDividerLines.PadLength;
+            LongDividerLinesPadString = loggerOptions.LongDividerLines.PadString;
+
+            ShortDividerLinesPadLength = loggerOptions.ShortDividerLines.PadLength;
+            ShortDividerLinesPadString = loggerOptions.ShortDividerLines.PadString;
+
+            SectionLinesPadLength = loggerOptions.SectionLines.PadLength;
+            SectionLinesPadString = loggerOptions.SectionLines.PadString;
+
+            SubsectionLinesPadLength = loggerOptions.SubsectionLines.PadLength;
+            SubsectionLinesPadString = loggerOptions.SubsectionLines.PadString;
+
+            HeaderLinesPadLength = loggerOptions.HeaderLines.PadLength;
+            HeaderLinesPadString = loggerOptions.HeaderLines.PadString;
+
+            FooterLinesPadLength = loggerOptions.FooterLines.PadLength;
+            FooterLinesPadString = loggerOptions.FooterLines.PadString;
+
+            _logger = logger ?? LoggerCreator.CreateLogger(AllLinesPrefixString);
             _serializer = new Serializer(ReadJsonOptions, WriteJsonOptions);
         }
 
@@ -89,19 +91,37 @@ namespace XamarinFiles.FancyLogger
 
         #region Public Properties
 
-        public char HeaderChar { get; }
+        // Constructor Parameters
 
-        public int HeaderLength { get; }
-
-        public string LoggerPrefix { get; }
+        public FancyLoggerOptions LoggerOptions { get; }
 
         public JsonSerializerOptions ReadJsonOptions { get; }
 
-        public char SubheaderChar { get; }
-
-        public int SubheaderLength { get; }
-
         public JsonSerializerOptions WriteJsonOptions { get; }
+
+        // FancyLoggerOptions Values
+
+        public string AllLinesPrefixString { get; }
+        public int AllLinesPadLength { get; }
+        public string AllLinesPadString { get; }
+
+        public int LongDividerLinesPadLength { get; }
+        public string LongDividerLinesPadString { get; }
+
+        public int ShortDividerLinesPadLength { get; }
+        public string ShortDividerLinesPadString { get; }
+
+        public int SectionLinesPadLength { get; }
+        public string SectionLinesPadString { get; }
+
+        public int SubsectionLinesPadLength { get; }
+        public string SubsectionLinesPadString { get; }
+
+        public int HeaderLinesPadLength { get; }
+        public string HeaderLinesPadString { get; }
+
+        public int FooterLinesPadLength { get; }
+        public string FooterLinesPadString { get; }
 
         #endregion
 
@@ -228,7 +248,7 @@ namespace XamarinFiles.FancyLogger
 
         #endregion
 
-        #region Public Methods - Other
+        #region Public Methods - General Logging
 
         public void LogDebug(string format, bool addIndent = false,
             bool newLineAfter = false, params object[] args)
@@ -263,35 +283,6 @@ namespace XamarinFiles.FancyLogger
             var message = string.Format(format + NewLine, args);
 
             _logger.LogError("{message}", message);
-        }
-
-        public void LogFooter(string format, bool addEnd = false,
-            params object[] args)
-        {
-            if (addEnd)
-                format += " - End";
-            var message = string.Format(format, args).Trim() + " ";
-            var paddedMessage =
-                message.PadRight(HeaderLength, HeaderChar);
-
-            LogInfo(paddedMessage, newLineAfter: true);
-        }
-
-        public void LogHeader(string format, bool addStart = false,
-            params object[] args)
-        {
-            if (addStart)
-                format += " - Start";
-            var message = string.Format(format, args).Trim() + " ";
-            var paddedMessage =
-                message.PadRight(HeaderLength, HeaderChar);
-
-            LogInfo(paddedMessage, newLineAfter: true);
-        }
-
-        public void LogHorizontalLine()
-        {
-            LogHeader(new string(HeaderChar, HeaderLength));
         }
 
         public void LogInfo(string format, bool addIndent = false,
@@ -332,38 +323,6 @@ namespace XamarinFiles.FancyLogger
             }
         }
 
-        // TODO Add toggle for LogError vs LogWarning
-        public void LogProblemDetails(ProblemDetails problemDetails)
-        {
-            if (problemDetails == null)
-                return;
-
-            try
-            {
-                LogWarning($"PROBLEMDETAILS", newLineAfter:false);
-                LogWarning($"Title: '{problemDetails.Title}'",
-                    newLineAfter:false);
-                LogWarning($"Detail: '{problemDetails.Detail}'",
-                    newLineAfter:false);
-
-                LogDebug($"Status Code: {Indent}{problemDetails.Status}"
-                    + $" - {HttpStatusDetails[problemDetails.Status].Title}");
-                LogDebug($"Instance URL: {Indent}'{problemDetails.Instance}'");
-                LogDebug($"Type Info: {Indent}'{problemDetails.Type}'");
-
-                LogObject<Dictionary<string, string[]>>(
-                    problemDetails.Errors, label: "Errors Dictionary",
-                    newLineAfter: false);
-                LogObject<Dictionary<string, object>>(
-                    problemDetails.Extensions, label: "Extensions Dictionary",
-                    newLineAfter: true);
-            }
-            catch (Exception exception)
-            {
-                LogException(exception);
-            }
-        }
-
         public void LogScalar(string label, string value,
             bool addIndent = false, bool newLineAfter = true)
         {
@@ -375,15 +334,6 @@ namespace XamarinFiles.FancyLogger
                 message += NewLine;
 
             _logger.LogTrace("{message}", message);
-        }
-
-        public void LogSubheader(string format, params object[] args)
-        {
-            var message = string.Format(format, args).Trim() + " ";
-            var paddedMessage =
-                message.PadRight(SubheaderLength, SubheaderChar);
-
-            LogInfo(paddedMessage, newLineAfter: true);
         }
 
         public void LogTrace(string format, bool addIndent = false,
@@ -421,29 +371,107 @@ namespace XamarinFiles.FancyLogger
 
         #endregion
 
-        #region Deprecated Public Methods
+        #region Public Methods - Specialized Logging
 
-        [Obsolete("This method is obsolete. Call LogException instead.",
-            error: false)]
-        public void LogExceptionRouter(Exception exception)
+        // TODO Add toggle for LogError vs LogWarning
+        public void LogProblemDetails(ProblemDetails problemDetails)
         {
-            LogException(exception);
+            if (problemDetails == null)
+                return;
+
+            try
+            {
+                LogWarning($"PROBLEMDETAILS", newLineAfter:false);
+                LogWarning($"Title: '{problemDetails.Title}'",
+                    newLineAfter:false);
+                LogWarning($"Detail: '{problemDetails.Detail}'",
+                    newLineAfter:false);
+
+                LogDebug($"Status Code: {Indent}{problemDetails.Status}"
+                    + $" - {HttpStatusDetails[problemDetails.Status].Title}");
+                LogDebug($"Instance URL: {Indent}'{problemDetails.Instance}'");
+                LogDebug($"Type Info: {Indent}'{problemDetails.Type}'");
+
+                LogObject<Dictionary<string, string[]>>(
+                    problemDetails.Errors, label: "Errors Dictionary",
+                    newLineAfter: false);
+                LogObject<Dictionary<string, object>>(
+                    problemDetails.Extensions, label: "Extensions Dictionary",
+                    newLineAfter: true);
+            }
+            catch (Exception exception)
+            {
+                LogException(exception);
+            }
         }
 
-        [Obsolete("This method is obsolete. Call LogObject instead.",
-            error: false)]
-        public void LogObjectAsJson<T>(object obj, bool ignore = false,
-            bool keepNulls = false, bool newLineAfter = true)
+        #endregion
+
+        #region Public Methods - Structral Logging
+
+        // Horizontal Lines
+
+        public void LogLongDividerLine()
         {
-            LogObject<T>(obj, ignore, keepNulls, newLineAfter: newLineAfter);
+            var dividerLine =
+                "".PadRight(LongDividerLinesPadLength, LongDividerLinesPadString);
+
+            LogInfo(dividerLine, newLineAfter: true);
         }
 
-        [Obsolete("This method is obsolete. Call LogScalar instead.",
-            error: false)]
-        public void LogValue(string label, string value, bool addIndent = false,
-            bool newLineAfter = false)
+        public void LogShortDividerLine()
         {
-            LogScalar(label, value, addIndent, newLineAfter);
+            var dividerLine =
+                "".PadRight(ShortDividerLinesPadLength, ShortDividerLinesPadString);
+
+            LogInfo(dividerLine, newLineAfter: true);
+        }
+
+        // Section and Subsection
+
+        public void LogSection(string format, params object[] args)
+        {
+            var message = string.Format(format, args).Trim() + " ";
+            var paddedMessage =
+                message.PadRight(SectionLinesPadLength, SectionLinesPadString);
+
+            LogInfo(paddedMessage, newLineAfter: true);
+        }
+
+        public void LogSubsection(string format, params object[] args)
+        {
+            var message = string.Format(format, args).Trim() + " ";
+            var paddedMessage =
+                message.PadRight(SubsectionLinesPadLength,
+                    SubsectionLinesPadString);
+
+            LogInfo(paddedMessage, newLineAfter: true);
+        }
+
+        // Header and Footer
+
+        public void LogHeader(string format, bool addStart = false,
+            params object[] args)
+        {
+            if (addStart)
+                format += " - Start";
+            var message = string.Format(format, args).Trim() + " ";
+            var paddedMessage =
+                message.PadRight(HeaderLinesPadLength, HeaderLinesPadString);
+
+            LogInfo(paddedMessage, newLineAfter: true);
+        }
+
+        public void LogFooter(string format, bool addEnd = false,
+            params object[] args)
+        {
+            if (addEnd)
+                format += " - End";
+            var message = string.Format(format, args).Trim() + " ";
+            var paddedMessage =
+                message.PadRight(FooterLinesPadLength, FooterLinesPadString);
+
+            LogInfo(paddedMessage, newLineAfter: true);
         }
 
         #endregion
