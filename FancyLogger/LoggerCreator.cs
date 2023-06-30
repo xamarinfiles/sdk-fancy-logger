@@ -7,7 +7,7 @@ namespace XamarinFiles.FancyLogger
     {
         #region Public
 
-        public static ILogger CreateLogger<T>()
+        internal static ILogger CreateLogger<T>()
         {
             var loggerFactory = CreateLoggerFactory();
             var logger = loggerFactory.CreateLogger<T>();
@@ -17,7 +17,7 @@ namespace XamarinFiles.FancyLogger
             return logger;
         }
 
-        public static ILogger CreateLogger(string categoryName)
+        internal static ILogger CreateLogger(string categoryName)
         {
             var loggerFactory = CreateLoggerFactory();
             var logger = loggerFactory.CreateLogger(categoryName);
