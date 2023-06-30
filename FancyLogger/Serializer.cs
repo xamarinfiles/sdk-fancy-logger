@@ -1,9 +1,7 @@
 ﻿using Refit;
 using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using static XamarinFiles.PdHelpers.Refit.Extractors;
 
 namespace XamarinFiles.FancyLogger
@@ -29,15 +27,15 @@ namespace XamarinFiles.FancyLogger
 
         #region Properties
 
-        public JsonSerializerOptions ReadJsonOptions { get; }
+        internal JsonSerializerOptions ReadJsonOptions { get; }
 
-        public JsonSerializerOptions WriteJsonOptions { get; }
+        internal JsonSerializerOptions WriteJsonOptions { get; }
 
         #endregion
 
         #region Methods
 
-        public (string, ProblemDetails)
+        internal (string, ProblemDetails)
             ToJson<T>(object obj, bool keepNulls = false)
         {
             if (obj is null)

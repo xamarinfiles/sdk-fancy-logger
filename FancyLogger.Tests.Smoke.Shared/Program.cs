@@ -1,9 +1,13 @@
 ﻿#define ASSEMBLY_LOGGING
 
-using System.Diagnostics;
 using System;
+using System.Diagnostics;
+using System.Reflection;
 using XamarinFiles.FancyLogger.Extensions;
+using XamarinFiles.FancyLogger.Tests.Smoke.Local;
 using static System.Net.HttpStatusCode;
+using static System.String;
+using static System.StringSplitOptions;
 using static XamarinFiles.PdHelpers.Refit.Bundlers;
 
 namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
@@ -11,6 +15,11 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
     internal static class Program
     {
         #region Fields
+
+        private const string AssemblyNamespacePrefix =
+            "XamarinFiles.FancyLogger.";
+
+        private const string DefaultLogPrefix = "LOG";
 
         private const string LoginFailedTitle = "Invalid Credentials";
 
@@ -23,10 +32,10 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
 
         #region Services
 
-        private static FancyLoggerService? LoggerService { get; }
+        private static IFancyLogger? FancyLogger { get; }
 
 #if ASSEMBLY_LOGGING
-        private static AssemblyLoggerService? AssemblyLoggerService { get; }
+        private static IAssemblyLogger? AssemblyLogger { get; }
 #endif
 
         #endregion
@@ -37,17 +46,22 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
         {
             try
             {
+                var assembly = typeof(Program).Assembly;
 
-                LoggerService = new FancyLoggerService();
+                // ReSharper disable once UseObjectOrCollectionInitializer
+                var options = new FancyLoggerOptions();
+                options.AllLines.PrefixString = GetLogPrefix(assembly);
+
+                FancyLogger = new FancyLogger(loggerOptions: options);
 #if ASSEMBLY_LOGGING
-                AssemblyLoggerService = new AssemblyLoggerService(LoggerService);
+                AssemblyLogger = new AssemblyLogger(FancyLogger);
 #endif
             }
             catch (Exception exception)
             {
-                if (LoggerService is not null)
+                if (FancyLogger is not null)
                 {
-                    LoggerService.LogException(exception);
+                    FancyLogger.LogException(exception);
                 }
                 else
                 {
@@ -65,30 +79,36 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
         {
             try
             {
-                if (LoggerService is null)
+                if (FancyLogger is null)
                 {
                     return;
                 }
 
 #if ASSEMBLY_LOGGING
-                AssemblyLoggerService?.LogAssemblies(showCultureInfo: true);
+                AssemblyLogger?.LogAssemblies(showCultureInfo: true);
 #endif
-
-                LoggerService?.LogHeader("FancyLogger Tests");
 
                 // TODO Add updated test set from old Fancy Logger
 
-                LoggerService?.LogHeader("Header", addStart: true);
-
-                LoggerService?.LogSubheader("Subheader");
-
                 TestProblemDetailsLogger();
 
-                LoggerService?.LogFooter("Footer", addEnd: true);
+                FancyLogger.LogLongDividerLine();
+
+                FancyLogger.LogSection("Structural Logging Tests");
+
+                FancyLogger.LogSubsection("Subsection One");
+
+                FancyLogger.LogHeader("Header", addStart: true);
+
+                FancyLogger.LogFooter("Footer", addEnd: true);
+
+                FancyLogger.LogSubsection("Subsection Two");
+
+                FancyLogger.LogShortDividerLine();
             }
             catch (Exception exception)
             {
-                LoggerService?.LogException(exception);
+                FancyLogger?.LogException(exception);
             }
         }
 
@@ -106,9 +126,32 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
                     detail : "Invalid fields: Username, Password",
                     userMessages: LoginFailedUserMessages);
 
-            LoggerService!.LogProblemDetails(badRequestProblem);
+            FancyLogger!.LogProblemDetails(badRequestProblem);
 
             // TODO Add other ProblemDetails tests from other repo
+        }
+
+        #endregion
+
+        #region Helpers
+
+        private static string GetLogPrefix(Assembly assembly)
+        {
+            var assemblyName = assembly.GetName().Name;
+            if (IsNullOrWhiteSpace(assemblyName))
+                return "";
+
+            var shortName =
+                assemblyName.Split(AssemblyNamespacePrefix,
+                    RemoveEmptyEntries);
+
+            if (shortName.Length < 1)
+                // TODO Move to Fields
+                return DefaultLogPrefix;
+
+            var logPrefix = shortName[0];
+
+            return logPrefix;
         }
 
         #endregion
