@@ -7,7 +7,9 @@ namespace XamarinFiles.FancyLogger
     {
         #region Public
 
-        internal static ILogger CreateLogger<T>()
+        // TODO See CreateLogger(ILoggerFactory, Type) in Microsoft Learn
+        // For instantiated classes with default prefix of simple class name
+        internal static ILogger CreateLogger<T>() where T : class
         {
             var loggerFactory = CreateLoggerFactory();
             var logger = loggerFactory.CreateLogger<T>();
@@ -17,15 +19,22 @@ namespace XamarinFiles.FancyLogger
             return logger;
         }
 
-        internal static ILogger CreateLogger(string categoryName)
+        // For static classes or multiple logger instances with custom prefixes
+        internal static ILogger CreateLogger(string categoryName,
+            int prefixPadLength, string prefixPadString)
         {
-            var loggerFactory = CreateLoggerFactory();
-            var logger = loggerFactory.CreateLogger(categoryName);
+            // TODO Instead create padding to add after colon from CreateLogger
+            var paddedCategoryName =
+                categoryName.PadRight(prefixPadLength, prefixPadString);
 
-            logger.LogInformation("Logger created" + NewLine);
+            var loggerFactory = CreateLoggerFactory();
+            var logger = loggerFactory.CreateLogger(paddedCategoryName);
+
+            logger.LogInformation(Indent + "Logger created" + NewLine);
 
             return logger;
         }
+
 
         #endregion
 
