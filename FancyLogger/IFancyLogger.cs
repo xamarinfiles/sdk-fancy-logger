@@ -39,7 +39,7 @@ namespace XamarinFiles.FancyLogger
             bool newLineAfter = true, params object[] args);
 
         void LogObject<T>(object obj, bool ignore = false,
-            bool keepNulls = false, string label = null,
+            bool keepNulls = false, string label = null, bool addIndent = false,
             bool newLineAfter = true);
 
         void LogScalar(string label, string value,  bool addIndent = false,

@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Refit;
 using System;
 using System.Collections.Generic;
@@ -310,7 +310,7 @@ namespace XamarinFiles.FancyLogger
             _logger.LogError("{message}", message);
         }
 
-        public void LogInfo(string format, bool addIndent = false,
+        public void LogInfo(string format, bool addIndent = true,
             bool newLineAfter = true, params object[] args)
         {
             var message =
@@ -322,7 +322,7 @@ namespace XamarinFiles.FancyLogger
         }
 
         public void LogObject<T>(object obj, bool ignore = false,
-            bool keepNulls = false, string label = null,
+            bool keepNulls = false, string label = null, bool addIndent = true,
             bool newLineAfter = true)
         {
             if (ignore || obj is null)
@@ -339,8 +339,8 @@ namespace XamarinFiles.FancyLogger
                 if (string.IsNullOrWhiteSpace(formattedJson))
                     return;
 
-                LogTrace($"{label}:" + NewLine + formattedJson,
-                    newLineAfter: newLineAfter);
+                LogTrace(AddIndent(addIndent) + $"{label}:" + NewLine
+                    + formattedJson, newLineAfter: newLineAfter);
             }
             catch (Exception exception)
             {
@@ -348,8 +348,8 @@ namespace XamarinFiles.FancyLogger
             }
         }
 
-        public void LogScalar(string label, string value,
-            bool addIndent = false, bool newLineAfter = true)
+        public void LogScalar(string label, string value, bool addIndent = true,
+            bool newLineAfter = true)
         {
             var message =
                 // Difference in prefix length: "Trace" vs "Information"
@@ -366,8 +366,7 @@ namespace XamarinFiles.FancyLogger
         {
             var messagePrefix =
                 // Difference in prefix length: "Trace" vs "Information"
-                new string(' ', 6) +
-                AddIndent(addIndent);
+                new string(' ', 6) + AddIndent(addIndent);
 
             var message = messagePrefix
                 // TODO Handle format + args with separate {}s like Dictionary
@@ -381,12 +380,12 @@ namespace XamarinFiles.FancyLogger
             _logger.LogTrace("{message}", message);
         }
 
-        public void LogWarning(string format, bool addIndent = false,
+        public void LogWarning(string format, bool addIndent = true,
             bool newLineAfter = true, params object[] args)
         {
             var message =
                 // Difference in prefix length: "Warning" vs "Information"
-                new string(' ', 5) +
+                new string(' ', 4) +
                 AddIndent(addIndent) + string.Format(format, args);
             if (newLineAfter)
                 message += NewLine;
@@ -413,9 +412,12 @@ namespace XamarinFiles.FancyLogger
                     newLineAfter:false);
 
                 LogDebug($"Status Code: {Indent}{problemDetails.Status}"
-                    + $" - {HttpStatusDetails[problemDetails.Status].Title}");
-                LogDebug($"Instance URL: {Indent}'{problemDetails.Instance}'");
-                LogDebug($"Type Info: {Indent}'{problemDetails.Type}'");
+                    + $" - {HttpStatusDetails[problemDetails.Status].Title}",
+                    addIndent: true);
+                LogDebug($"Instance URL: {Indent}'{problemDetails.Instance}'",
+                    addIndent: true);
+                LogDebug($"Type Info: {Indent}'{problemDetails.Type}'",
+                    addIndent: true);
 
                 LogObject<Dictionary<string, string[]>>(
                     problemDetails.Errors, label: "Errors Dictionary",
@@ -506,8 +508,8 @@ namespace XamarinFiles.FancyLogger
         // TODO Go back to allowing multiple levels like the old FL library
         private static string AddIndent(bool addExtraIndent)
         {
-            // Explicit ident for alignment plus optional one for nesting
-            return Indent + (addExtraIndent ? Indent : "");
+            // Optional ident for nesting
+            return addExtraIndent ? Indent : "";
         }
 
         #endregion
