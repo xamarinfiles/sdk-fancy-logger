@@ -49,11 +49,21 @@ namespace XamarinFiles.FancyLogger
 
         #endregion
 
+        // TODO Test with other log destinations after finish porting test code
         #region Constructor
 
-        // TODO Test with other log destinations after finish porting test code
+        // TODO Add ctor to tie default (non-hosted) logger directly to type
+
+        // For static classes or multiple logger instances with custom prefixes
         public FancyLogger(ILogger logger = null,
+            // Common overrides => create direct paths to avoid options object
+            string allLinesPrefix = null,
+            int? allLinesPadLength = null,
+
+            // All overrides => create path to override all options at once
             FancyLoggerOptions loggerOptions = null,
+
+            // Serializer overrides  => System.Text.Json options for LogObject
             JsonSerializerOptions readJsonOptions = null,
             JsonSerializerOptions writeJsonOptions = null)
         {
@@ -61,30 +71,45 @@ namespace XamarinFiles.FancyLogger
             ReadJsonOptions = readJsonOptions ?? DefaultReadOptions;
             WriteJsonOptions = writeJsonOptions ?? DefaultWriteJsonOptions;
 
-            AllLinesPrefixString = loggerOptions!.AllLines.PrefixString;
-            AllLinesPadLength = loggerOptions.AllLines.PadLength;
-            AllLinesPadString = loggerOptions.AllLines.PadString;
+            if (!string.IsNullOrWhiteSpace(allLinesPrefix))
+            {
+                LoggerOptions!.AllLines.PrefixString = allLinesPrefix;
+            }
+            if (allLinesPadLength is not null)
+            {
+                LoggerOptions!.AllLines.PadLength = (int) allLinesPadLength;
+            }
 
-            LongDividerLinesPadLength = loggerOptions.LongDividerLines.PadLength;
-            LongDividerLinesPadString = loggerOptions.LongDividerLines.PadString;
+            MapShorthandProperties();
 
-            ShortDividerLinesPadLength = loggerOptions.ShortDividerLines.PadLength;
-            ShortDividerLinesPadString = loggerOptions.ShortDividerLines.PadString;
-
-            SectionLinesPadLength = loggerOptions.SectionLines.PadLength;
-            SectionLinesPadString = loggerOptions.SectionLines.PadString;
-
-            SubsectionLinesPadLength = loggerOptions.SubsectionLines.PadLength;
-            SubsectionLinesPadString = loggerOptions.SubsectionLines.PadString;
-
-            HeaderLinesPadLength = loggerOptions.HeaderLines.PadLength;
-            HeaderLinesPadString = loggerOptions.HeaderLines.PadString;
-
-            FooterLinesPadLength = loggerOptions.FooterLines.PadLength;
-            FooterLinesPadString = loggerOptions.FooterLines.PadString;
-
-            _logger = logger ?? LoggerCreator.CreateLogger(AllLinesPrefixString);
+            _logger = logger ?? LoggerCreator.CreateLogger(AllLinesPrefixString,
+                AllLinesPadLength, AllLinesPadString);
             _serializer = new Serializer(ReadJsonOptions, WriteJsonOptions);
+        }
+
+        private void MapShorthandProperties()
+        {
+            AllLinesPrefixString = LoggerOptions!.AllLines.PrefixString;
+            AllLinesPadLength = LoggerOptions!.AllLines.PadLength;
+            AllLinesPadString = LoggerOptions.AllLines.PadString;
+
+            LongDividerLinesPadLength = LoggerOptions.LongDividerLines.PadLength;
+            LongDividerLinesPadString = LoggerOptions.LongDividerLines.PadString;
+
+            ShortDividerLinesPadLength = LoggerOptions.ShortDividerLines.PadLength;
+            ShortDividerLinesPadString = LoggerOptions.ShortDividerLines.PadString;
+
+            SectionLinesPadLength = LoggerOptions.SectionLines.PadLength;
+            SectionLinesPadString = LoggerOptions.SectionLines.PadString;
+
+            SubsectionLinesPadLength = LoggerOptions.SubsectionLines.PadLength;
+            SubsectionLinesPadString = LoggerOptions.SubsectionLines.PadString;
+
+            HeaderLinesPadLength = LoggerOptions.HeaderLines.PadLength;
+            HeaderLinesPadString = LoggerOptions.HeaderLines.PadString;
+
+            FooterLinesPadLength = LoggerOptions.FooterLines.PadLength;
+            FooterLinesPadString = LoggerOptions.FooterLines.PadString;
         }
 
         #endregion
@@ -101,27 +126,27 @@ namespace XamarinFiles.FancyLogger
 
         // FancyLoggerOptions Values
 
-        public string AllLinesPrefixString { get; }
-        public int AllLinesPadLength { get; }
-        public string AllLinesPadString { get; }
+        public string AllLinesPrefixString { get; private set; }
+        public int AllLinesPadLength { get; private set; }
+        public string AllLinesPadString { get; private set; }
 
-        public int LongDividerLinesPadLength { get; }
-        public string LongDividerLinesPadString { get; }
+        public int LongDividerLinesPadLength { get; private set; }
+        public string LongDividerLinesPadString { get; private set; }
 
-        public int ShortDividerLinesPadLength { get; }
-        public string ShortDividerLinesPadString { get; }
+        public int ShortDividerLinesPadLength { get; private set; }
+        public string ShortDividerLinesPadString { get; private set; }
 
-        public int SectionLinesPadLength { get; }
-        public string SectionLinesPadString { get; }
+        public int SectionLinesPadLength { get; private set; }
+        public string SectionLinesPadString { get; private set; }
 
-        public int SubsectionLinesPadLength { get; }
-        public string SubsectionLinesPadString { get; }
+        public int SubsectionLinesPadLength { get; private set; }
+        public string SubsectionLinesPadString { get; private set; }
 
-        public int HeaderLinesPadLength { get; }
-        public string HeaderLinesPadString { get; }
+        public int HeaderLinesPadLength { get; private set; }
+        public string HeaderLinesPadString { get; private set; }
 
-        public int FooterLinesPadLength { get; }
-        public string FooterLinesPadString { get; }
+        public int FooterLinesPadLength { get; private set; }
+        public string FooterLinesPadString { get; private set; }
 
         #endregion
 
@@ -285,7 +310,7 @@ namespace XamarinFiles.FancyLogger
             _logger.LogError("{message}", message);
         }
 
-        public void LogInfo(string format, bool addIndent = false,
+        public void LogInfo(string format, bool addIndent = true,
             bool newLineAfter = true, params object[] args)
         {
             var message =
@@ -297,7 +322,7 @@ namespace XamarinFiles.FancyLogger
         }
 
         public void LogObject<T>(object obj, bool ignore = false,
-            bool keepNulls = false, string label = null,
+            bool keepNulls = false, string label = null, bool addIndent = true,
             bool newLineAfter = true)
         {
             if (ignore || obj is null)
@@ -314,8 +339,8 @@ namespace XamarinFiles.FancyLogger
                 if (string.IsNullOrWhiteSpace(formattedJson))
                     return;
 
-                LogTrace($"{label}:" + NewLine + formattedJson,
-                    newLineAfter: newLineAfter);
+                LogTrace(AddIndent(addIndent) + $"{label}:" + NewLine
+                    + formattedJson, newLineAfter: newLineAfter);
             }
             catch (Exception exception)
             {
@@ -323,8 +348,8 @@ namespace XamarinFiles.FancyLogger
             }
         }
 
-        public void LogScalar(string label, string value,
-            bool addIndent = false, bool newLineAfter = true)
+        public void LogScalar(string label, string value, bool addIndent = true,
+            bool newLineAfter = true)
         {
             var message =
                 // Difference in prefix length: "Trace" vs "Information"
@@ -341,8 +366,7 @@ namespace XamarinFiles.FancyLogger
         {
             var messagePrefix =
                 // Difference in prefix length: "Trace" vs "Information"
-                new string(' ', 6) +
-                AddIndent(addIndent);
+                new string(' ', 6) + AddIndent(addIndent);
 
             var message = messagePrefix
                 // TODO Handle format + args with separate {}s like Dictionary
@@ -356,12 +380,12 @@ namespace XamarinFiles.FancyLogger
             _logger.LogTrace("{message}", message);
         }
 
-        public void LogWarning(string format, bool addIndent = false,
+        public void LogWarning(string format, bool addIndent = true,
             bool newLineAfter = true, params object[] args)
         {
             var message =
                 // Difference in prefix length: "Warning" vs "Information"
-                new string(' ', 5) +
+                new string(' ', 4) +
                 AddIndent(addIndent) + string.Format(format, args);
             if (newLineAfter)
                 message += NewLine;
@@ -388,9 +412,12 @@ namespace XamarinFiles.FancyLogger
                     newLineAfter:false);
 
                 LogDebug($"Status Code: {Indent}{problemDetails.Status}"
-                    + $" - {HttpStatusDetails[problemDetails.Status].Title}");
-                LogDebug($"Instance URL: {Indent}'{problemDetails.Instance}'");
-                LogDebug($"Type Info: {Indent}'{problemDetails.Type}'");
+                    + $" - {HttpStatusDetails[problemDetails.Status].Title}",
+                    addIndent: true);
+                LogDebug($"Instance URL: {Indent}'{problemDetails.Instance}'",
+                    addIndent: true);
+                LogDebug($"Type Info: {Indent}'{problemDetails.Type}'",
+                    addIndent: true);
 
                 LogObject<Dictionary<string, string[]>>(
                     problemDetails.Errors, label: "Errors Dictionary",
@@ -481,8 +508,8 @@ namespace XamarinFiles.FancyLogger
         // TODO Go back to allowing multiple levels like the old FL library
         private static string AddIndent(bool addExtraIndent)
         {
-            // Explicit ident for alignment plus optional one for nesting
-            return Indent + (addExtraIndent ? Indent : "");
+            // Optional ident for nesting
+            return addExtraIndent ? Indent : "";
         }
 
         #endregion

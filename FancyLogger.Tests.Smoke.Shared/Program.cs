@@ -92,19 +92,9 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
 
                 TestProblemDetailsLogger();
 
-                FancyLogger.LogLongDividerLine();
+                TestStructuralLoggingMethods();
 
-                FancyLogger.LogSection("Structural Logging Tests");
-
-                FancyLogger.LogSubsection("Subsection One");
-
-                FancyLogger.LogHeader("Header", addStart: true);
-
-                FancyLogger.LogFooter("Footer", addEnd: true);
-
-                FancyLogger.LogSubsection("Subsection Two");
-
-                FancyLogger.LogShortDividerLine();
+                TestAllLinesPrefixOverride();
             }
             catch (Exception exception)
             {
@@ -112,9 +102,37 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
             }
         }
 
-        #endregion
-
         #region Tests
+
+        private static void TestAllLinesPrefixOverride()
+        {
+            FancyLogger!.LogSection("All-Lines Prefix Override Tests");
+
+            var loggerOptions = new FancyLoggerOptions
+            {
+                AllLines =
+                {
+                    PrefixString = "Options Prefix",
+                    PadLength = 17,
+                }
+            };
+
+            var defaultPrefixFancyLogger =
+                new FancyLogger();
+            defaultPrefixFancyLogger.LogInfo(
+                "Test All Lines Prefix From Defaults");
+
+            var optionsPrefixFancyLogger =
+                new FancyLogger(loggerOptions: loggerOptions);
+            optionsPrefixFancyLogger.LogInfo(
+                "Test All Lines Prefix From Options");
+
+            var argumentPrefixFancyLogger =
+                new FancyLogger(allLinesPrefix: "Argument Prefix",
+                    allLinesPadLength: 20, loggerOptions: loggerOptions);
+            argumentPrefixFancyLogger.LogInfo(
+                "Test All Lines Prefix From Arguments");
+        }
 
         private static void TestProblemDetailsLogger()
         {
@@ -130,6 +148,25 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
 
             // TODO Add other ProblemDetails tests from other repo
         }
+
+        private static void TestStructuralLoggingMethods()
+        {
+            FancyLogger!.LogLongDividerLine();
+
+            FancyLogger.LogSection("Structural Logging Tests");
+
+            FancyLogger.LogSubsection("Subsection One");
+
+            FancyLogger.LogHeader("Header", addStart: true);
+
+            FancyLogger.LogFooter("Footer", addEnd: true);
+
+            FancyLogger.LogSubsection("Subsection Two");
+
+            FancyLogger.LogShortDividerLine();
+        }
+
+        #endregion
 
         #endregion
 
