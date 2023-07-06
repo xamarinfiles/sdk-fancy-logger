@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <Compile Include="..\FancyLogger.Extensions\AssemblyLogger.cs" Link="AssemblyLogger.cs" />
-    <Compile Include="..\FancyLogger.Extensions\IAssemblyLogger.cs" Link="IAssemblyLogger.cs" />
+    <Compile Include="..\FancyLogger.Extensions\LogPrefixHelper.cs" Link="LogPrefixHelper.cs" />
     <Compile Include="..\FancyLogger.Tests.Smoke.Shared\Program.cs" Link="Program.cs" />
   </ItemGroup>
 
