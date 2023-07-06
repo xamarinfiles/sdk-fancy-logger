@@ -1,9 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace XamarinFiles.FancyLogger
+﻿namespace XamarinFiles.FancyLogger.Options
 {
-    [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
-    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     public class FancyLoggerOptions
     {
         public LinePrefix AllLines { get; set; } =
@@ -56,23 +52,5 @@ namespace XamarinFiles.FancyLogger
                 PadLength = 40,
                 PadString = "/\\"
             };
-    }
-
-    [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
-    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
-    public class LinePrefix : LinePadding
-    {
-        [SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
-        public string PrefixString { get; set; }
-    }
-
-    [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
-    [SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
-    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
-    public class LinePadding
-    {
-        public int PadLength { get; set; }
-
-        public string PadString { get; set; }
     }
 }
