@@ -2,12 +2,9 @@
 
 using System;
 using System.Diagnostics;
-using System.Reflection;
 using XamarinFiles.FancyLogger.Extensions;
-using XamarinFiles.FancyLogger.Tests.Smoke.Local;
+using XamarinFiles.FancyLogger.Options;
 using static System.Net.HttpStatusCode;
-using static System.String;
-using static System.StringSplitOptions;
 using static XamarinFiles.PdHelpers.Refit.Bundlers;
 
 namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
@@ -16,9 +13,7 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
     {
         #region Fields
 
-        private const string AssemblyNamespacePrefix =
-            "XamarinFiles.FancyLogger.";
-
+        // TODO Set to same default as FancyLoggerOptions.AllLines.PrefixString
         private const string DefaultLogPrefix = "LOG";
 
         private const string LoginFailedTitle = "Invalid Credentials";
@@ -28,6 +23,8 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
             "Please check your Username and Password and try again"
         };
 
+        private const string RootAssemblyNamespace = "XamarinFiles.FancyLogger.";
+
         #endregion
 
         #region Services
@@ -35,7 +32,7 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
         private static IFancyLogger? FancyLogger { get; }
 
 #if ASSEMBLY_LOGGING
-        private static IAssemblyLogger? AssemblyLogger { get; }
+        private static AssemblyLogger? AssemblyLogger { get; }
 #endif
 
         #endregion
@@ -50,7 +47,9 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
 
                 // ReSharper disable once UseObjectOrCollectionInitializer
                 var options = new FancyLoggerOptions();
-                options.AllLines.PrefixString = GetLogPrefix(assembly);
+                options.AllLines.PrefixString =
+                    LogPrefixHelper.GetAssemblyNameTail(assembly,
+                        RootAssemblyNamespace, DefaultLogPrefix);
 
                 FancyLogger = new FancyLogger(loggerOptions: options);
 #if ASSEMBLY_LOGGING
@@ -87,12 +86,13 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
 #if ASSEMBLY_LOGGING
                 AssemblyLogger?.LogAssemblies(showCultureInfo: true);
 #endif
+                FancyLogger.LogSection("Run FancyLogger Tests");
 
                 // TODO Add updated test set from old Fancy Logger
 
-                TestProblemDetailsLogger();
-
                 TestStructuralLoggingMethods();
+
+                TestProblemDetailsLogger();
 
                 TestAllLinesPrefixOverride();
             }
@@ -101,6 +101,8 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
                 FancyLogger?.LogException(exception);
             }
         }
+
+        #endregion
 
         #region Tests
 
@@ -164,31 +166,6 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
             FancyLogger.LogSubsection("Subsection Two");
 
             FancyLogger.LogShortDividerLine();
-        }
-
-        #endregion
-
-        #endregion
-
-        #region Helpers
-
-        private static string GetLogPrefix(Assembly assembly)
-        {
-            var assemblyName = assembly.GetName().Name;
-            if (IsNullOrWhiteSpace(assemblyName))
-                return "";
-
-            var shortName =
-                assemblyName.Split(AssemblyNamespacePrefix,
-                    RemoveEmptyEntries);
-
-            if (shortName.Length < 1)
-                // TODO Move to Fields
-                return DefaultLogPrefix;
-
-            var logPrefix = shortName[0];
-
-            return logPrefix;
         }
 
         #endregion

@@ -5,25 +5,30 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
-using XamarinFiles.FancyLogger.Tests.Smoke.Local;
 using static System.Globalization.CultureInfo;
 using static XamarinFiles.FancyLogger.Characters;
 
+// Source: https://github.com/xamarinfiles/library-fancy-logger-extensions
+//
+// Problem: when AssemblyLogger is in a shared project and accessed by another
+// project, it triggers an anti-virus flag for assembly passing across projects
+//
+// Solution: copy file to each repo and add to each test project as shared file
+// to avoid duplicating code into each test program
 namespace XamarinFiles.FancyLogger.Extensions
 {
-    // Source: https://github.com/xamarinfiles/library-fancy-logger-extensions
-    // Copy folder to each repo and add to each solution as shared project
-    // until able to bypass anti-virus flag for assembly passing
-    internal class AssemblyLogger : IAssemblyLogger
+    internal class AssemblyLogger
     {
         #region Fields
 
         private readonly string _ancestorPath;
 
+        private readonly Assembly _assembly;
+
         private readonly string _assemblyPath;
 
         // TODO Change to true or eliminate when add more CultureInfo processing
-        private const bool DefaultShowCultureInfo = true;
+        private const bool DefaultShowCultureInfo = false;
 
         private const string OrganizationPrefix = "XamarinFiles";
 
@@ -42,7 +47,9 @@ namespace XamarinFiles.FancyLogger.Extensions
         public AssemblyLogger(IFancyLogger fancyLogger)
         {
             FancyLogger = fancyLogger;
-            _assemblyPath = Assembly.GetExecutingAssembly().Location;
+
+            _assembly = Assembly.GetExecutingAssembly();
+            _assemblyPath = _assembly.Location;
             _ancestorPath = GetAncestorPath(_assemblyPath);
         }
 
@@ -66,9 +73,7 @@ namespace XamarinFiles.FancyLogger.Extensions
 
             // Executing Assembly
 
-            var executingAssembly = Assembly.GetExecutingAssembly();
-
-            LogExecutingAssembly(executingAssembly);
+            LogExecutingAssembly(_assembly);
 
             // Domain Assemblies
 
@@ -90,7 +95,6 @@ namespace XamarinFiles.FancyLogger.Extensions
                         .Where(assemblyName => assemblyName?.FullName is not null
                             && assemblyName.FullName.StartsWith(PackagePrefix))
                         .OrderBy(assembly => assembly.FullName);
-                ;
 
                 foreach (var referencedAssemblyName in referenceAssemblyNames)
                 {
@@ -103,13 +107,13 @@ namespace XamarinFiles.FancyLogger.Extensions
         private static string GetAncestorPath(string assemblyLocation)
         {
             // Assumes the following directory hierarchy of local source paths:
-            // user or organization
-            // repository
-            // project
-            // bin
-            // configuration (Debug, etc.)
-            // target framework (net7.0, etc.)
-            // library (dll)
+            // 1.) user or organization
+            // 2.) repository
+            // 3.) project
+            // 4.) bin
+            // 5.) configuration (Debug, etc.)
+            // 6.) target framework (net7.0, etc.)
+            // 7.) library (dll)
             var ancestorPath =
                 Path.GetFullPath(
                     Path.Combine(
@@ -271,6 +275,5 @@ namespace XamarinFiles.FancyLogger.Extensions
         }
 
         #endregion
-
     }
 }

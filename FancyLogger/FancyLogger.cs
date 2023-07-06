@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using XamarinFiles.FancyLogger.Options;
 using static System.Net.HttpStatusCode;
 using static System.Net.Sockets.SocketError;
 using static System.Net.WebExceptionStatus;
