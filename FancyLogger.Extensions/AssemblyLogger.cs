@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
 using static System.Globalization.CultureInfo;
-using static XamarinFiles.FancyLogger.Characters;
+using static XamarinFiles.FancyLogger.Helpers.Characters;
 
 // Source: https://github.com/xamarinfiles/library-fancy-logger-extensions
 //

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using static XamarinFiles.FancyLogger.Characters;
+using static XamarinFiles.FancyLogger.Helpers.Characters;
 
-namespace XamarinFiles.FancyLogger
+namespace XamarinFiles.FancyLogger.Helpers
 {
     internal static class LoggerCreator
     {
@@ -45,12 +45,12 @@ namespace XamarinFiles.FancyLogger
             // Create a logger factory
             var loggerFactory = LoggerFactory.Create(
                 builder => builder
-//#if DEBUG
+                    //#if DEBUG
                     .AddDebug()
                     .SetMinimumLevel(LogLevel.Trace)
-//#else
-//                    .SetMinimumLevel(LogLevel.Information)
-//#endif
+            //#else
+            //                    .SetMinimumLevel(LogLevel.Information)
+            //#endif
             );
 
             return loggerFactory;
