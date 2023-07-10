@@ -8,11 +8,14 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using XamarinFiles.FancyLogger.Enums;
+using XamarinFiles.FancyLogger.Helpers;
 using XamarinFiles.FancyLogger.Options;
 using static System.Net.HttpStatusCode;
 using static System.Net.Sockets.SocketError;
 using static System.Net.WebExceptionStatus;
-using static XamarinFiles.FancyLogger.Characters;
+using static XamarinFiles.FancyLogger.Enums.ErrorOrWarning;
+using static XamarinFiles.FancyLogger.Helpers.Characters;
 using static XamarinFiles.PdHelpers.Shared.StatusCodeDetails;
 
 namespace XamarinFiles.FancyLogger
@@ -45,6 +48,7 @@ namespace XamarinFiles.FancyLogger
         public static readonly JsonSerializerOptions
             DefaultWriteJsonOptions = new()
             {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 WriteIndented = true
             };
 
@@ -201,6 +205,8 @@ namespace XamarinFiles.FancyLogger
             LogObject<ProblemDetails>(apiException.Content);
         }
 
+        // TODO Handle aggregate and nested exceptions - see old FL library
+        // TODO Handle stack traces - see old FL library
         public void LogCommonException(Exception exception, string outerLabel,
             string innerLabel = "INNER EXCEPTION")
         {
@@ -304,11 +310,37 @@ namespace XamarinFiles.FancyLogger
             }
         }
 
-        public void LogError(string format, params object[] args)
+        public void LogError(string format, bool addIndent = true,
+            bool newLineAfter = true, params object[] args)
         {
-            var message = string.Format(format + NewLine, args);
+            var message =
+                // Difference in prefix length: "Error" vs "Information"
+                new string(' ', 6)
+                + AddIndent(addIndent) + string.Format(format, args);
+            if (newLineAfter)
+                message += NewLine;
 
             _logger.LogError("{message}", message);
+        }
+
+        public void LogErrorOrWarning(ErrorOrWarning errorOrWarning,
+            string format, bool addIndent = true, bool newLineAfter = true,
+            params object[] args)
+        {
+            switch (errorOrWarning)
+            {
+                case Error:
+                    LogError(format, addIndent, newLineAfter, args);
+
+                    break;
+                case Warning:
+                    LogWarning(format, addIndent, newLineAfter, args);
+
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(errorOrWarning),
+                        errorOrWarning, null);
+            }
         }
 
         public void LogInfo(string format, bool addIndent = true,
@@ -335,12 +367,12 @@ namespace XamarinFiles.FancyLogger
                     _serializer.ToJson<T>(obj, keepNulls);
 
                 if (problemDetails != null)
-                    LogProblemDetails(problemDetails);
+                    LogProblemDetails(problemDetails, Error);
 
                 if (string.IsNullOrWhiteSpace(formattedJson))
                     return;
 
-                LogTrace(AddIndent(addIndent) + $"{label}:" + NewLine
+                LogDebug(AddIndent(addIndent) + $"{label}:" + NewLine
                     + formattedJson, newLineAfter: newLineAfter);
             }
             catch (Exception exception)
@@ -353,13 +385,13 @@ namespace XamarinFiles.FancyLogger
             bool newLineAfter = true)
         {
             var message =
-                // Difference in prefix length: "Trace" vs "Information"
+                // Difference in prefix length: "Debug" vs "Information"
                 new string(' ', 6) +
                 AddIndent(addIndent) + $"{label}{Indent}={Indent}{value}";
             if (newLineAfter)
                 message += NewLine;
 
-            _logger.LogTrace("{message}", message);
+            _logger.LogDebug("{message}", message);
         }
 
         public void LogTrace(string format, bool addIndent = false,
@@ -386,8 +418,8 @@ namespace XamarinFiles.FancyLogger
         {
             var message =
                 // Difference in prefix length: "Warning" vs "Information"
-                new string(' ', 4) +
-                AddIndent(addIndent) + string.Format(format, args);
+                new string(' ', 4)
+                + AddIndent(addIndent) + string.Format(format, args);
             if (newLineAfter)
                 message += NewLine;
 
@@ -398,28 +430,32 @@ namespace XamarinFiles.FancyLogger
 
         #region Public Methods - Specialized Logging
 
-        // TODO Add toggle for LogError vs LogWarning
-        public void LogProblemDetails(ProblemDetails problemDetails)
+        public void LogProblemDetails(ProblemDetails problemDetails,
+            ErrorOrWarning errorOrWarning)
         {
             if (problemDetails == null)
                 return;
 
             try
             {
-                LogWarning($"PROBLEMDETAILS", newLineAfter:false);
-                LogWarning($"Title: '{problemDetails.Title}'",
+                LogErrorOrWarning(errorOrWarning, "PROBLEMDETAILS",
                     newLineAfter:false);
-                LogWarning($"Detail: '{problemDetails.Detail}'",
-                    newLineAfter:false);
-
-                LogDebug($"Status Code: {Indent}{problemDetails.Status}"
+                LogErrorOrWarning(errorOrWarning,
+                    $"Status Code: {Indent}{problemDetails.Status}"
                     + $" - {HttpStatusDetails[problemDetails.Status].Title}",
-                    addIndent: true);
-                LogDebug($"Instance URL: {Indent}'{problemDetails.Instance}'",
-                    addIndent: true);
+                    newLineAfter:false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Title: {Indent}'{problemDetails.Title}'",
+                    newLineAfter:false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Detail: {Indent}'{problemDetails.Detail}'",
+                    newLineAfter:false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Instance URL: {Indent}'{problemDetails.Instance}'",
+                    newLineAfter: true);
+
                 LogDebug($"Type Info: {Indent}'{problemDetails.Type}'",
                     addIndent: true);
-
                 LogObject<Dictionary<string, string[]>>(
                     problemDetails.Errors, label: "Errors Dictionary",
                     newLineAfter: false);
