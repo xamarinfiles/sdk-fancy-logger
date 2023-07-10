@@ -92,8 +92,8 @@ namespace XamarinFiles.FancyLogger.Extensions
                 var referenceAssemblyNames =
                     domainAssembly.GetReferencedAssemblies()
                         .ToList()
-                        .Where(assemblyName => assemblyName?.FullName is not null
-                            && assemblyName.FullName.StartsWith(PackagePrefix))
+                        .Where(assemblyName =>
+                            assemblyName.FullName.StartsWith(PackagePrefix))
                         .OrderBy(assembly => assembly.FullName);
 
                 foreach (var referencedAssemblyName in referenceAssemblyNames)
@@ -184,7 +184,7 @@ namespace XamarinFiles.FancyLogger.Extensions
         {
             var frameworkAttribute =
                 assembly.GetCustomAttribute<TargetFrameworkAttribute>()!;
-            var frameworkName = frameworkAttribute?.FrameworkDisplayName;
+            var frameworkName = frameworkAttribute.FrameworkDisplayName;
 
             if (string.IsNullOrEmpty(frameworkName))
                 return;
