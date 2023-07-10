@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XamarinFiles.FancyLogger
+namespace XamarinFiles.FancyLogger.Helpers
 {
     public static class Characters
     {

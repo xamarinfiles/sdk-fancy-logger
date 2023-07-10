@@ -1,7 +1,8 @@
-﻿using Refit;
+using Refit;
 using System;
 using System.Net.Http;
 using System.Text.Json;
+using XamarinFiles.FancyLogger.Enums;
 
 namespace XamarinFiles.FancyLogger
 {
@@ -33,7 +34,12 @@ namespace XamarinFiles.FancyLogger
         void LogDebug(string format, bool addIndent = false,
             bool newLineAfter = false, params object[] args);
 
-        void LogError(string format, params object[] args);
+        void LogError(string format, bool addIndent = false,
+            bool newLineAfter = true, params object[] args);
+
+        void LogErrorOrWarning(ErrorOrWarning errorOrWarning, string format,
+            bool addIndent = false, bool newLineAfter = true,
+            params object[] args);
 
         void LogInfo(string format, bool addIndent = false,
             bool newLineAfter = true, params object[] args);
@@ -55,7 +61,8 @@ namespace XamarinFiles.FancyLogger
 
         #region Specialized Logging
 
-        void LogProblemDetails(ProblemDetails problemDetails);
+        void LogProblemDetails(ProblemDetails problemDetails,
+            ErrorOrWarning errorOrWarning);
 
         #endregion
 

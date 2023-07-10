@@ -2,9 +2,10 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using static XamarinFiles.PdHelpers.Refit.Extractors;
 
-namespace XamarinFiles.FancyLogger
+namespace XamarinFiles.FancyLogger.Helpers
 {
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
@@ -19,17 +20,26 @@ namespace XamarinFiles.FancyLogger
         internal Serializer(JsonSerializerOptions readJsonOptions,
             JsonSerializerOptions writeJsonOptions)
         {
-            ReadJsonOptions = readJsonOptions;
-            WriteJsonOptions = writeJsonOptions;
+            SharedReadJsonOptions = readJsonOptions;
+
+            writeJsonOptions.DefaultIgnoreCondition =
+                JsonIgnoreCondition.Never;
+            SharedWriteJsonOptionsWithNulls = writeJsonOptions;
+
+            writeJsonOptions.DefaultIgnoreCondition =
+                JsonIgnoreCondition.WhenWritingNull;
+            SharedWriteJsonOptionsWithoutNulls = writeJsonOptions;
         }
 
         #endregion
 
         #region Properties
 
-        internal JsonSerializerOptions ReadJsonOptions { get; }
+        internal JsonSerializerOptions SharedReadJsonOptions { get; }
 
-        internal JsonSerializerOptions WriteJsonOptions { get; }
+        internal JsonSerializerOptions SharedWriteJsonOptionsWithNulls { get; }
+
+        internal JsonSerializerOptions SharedWriteJsonOptionsWithoutNulls { get; }
 
         #endregion
 
@@ -57,7 +67,7 @@ namespace XamarinFiles.FancyLogger
                     }
 
                     var deserializedObject =
-                        JsonSerializer.Deserialize<T>(str, ReadJsonOptions);
+                        JsonSerializer.Deserialize<T>(str, SharedReadJsonOptions);
 
                     typedObject = deserializedObject != null
                         ? deserializedObject
@@ -98,8 +108,10 @@ namespace XamarinFiles.FancyLogger
 
             try
             {
+                var writeJsonOptions = CheckKeepNullsToggle(keepNulls);
+
                 var formattedJson =
-                    JsonSerializer.Serialize(typedObject, WriteJsonOptions);
+                    JsonSerializer.Serialize(typedObject, writeJsonOptions);
 
                 return (formattedJson, null);
             }
@@ -115,6 +127,13 @@ namespace XamarinFiles.FancyLogger
 
                 return (null, problemDetails);
             }
+        }
+
+        private JsonSerializerOptions CheckKeepNullsToggle(bool keepNulls)
+        {
+            return keepNulls
+                ? SharedWriteJsonOptionsWithNulls
+                : SharedWriteJsonOptionsWithoutNulls;
         }
 
         #endregion

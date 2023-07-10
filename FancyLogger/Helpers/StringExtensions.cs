@@ -1,7 +1,7 @@
 ﻿using System;
 using static System.String;
 
-namespace XamarinFiles.FancyLogger
+namespace XamarinFiles.FancyLogger.Helpers
 {
     internal static class StringExtensions
     {
@@ -28,8 +28,8 @@ namespace XamarinFiles.FancyLogger
             }
 
             var paddingCount =
-                (uint) Math.Ceiling((double)paddingLength / paddingStr.Length);
-            var paddedStrText = text + Repeat(paddingStr, paddingCount);
+                (uint)Math.Ceiling((double)paddingLength / paddingStr.Length);
+            var paddedStrText = text + paddingStr.Repeat(paddingCount);
             var trimmedPaddedStrText =
                 paddedStrText.Substring(0, totalWidth);
 
