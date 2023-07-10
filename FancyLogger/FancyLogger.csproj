@@ -50,8 +50,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
-    <PackageReference Include="Refit" Version="6.3.2" />
-    <PackageReference Include="XamarinFiles.PdHelpers.Refit" Version="1.0.4" />
+    <PackageReference Include="Refit" Version="7.0.0" />
+    <PackageReference Include="XamarinFiles.PdHelpers.Refit" Version="1.0.5" />
   </ItemGroup>
 
 </Project>
