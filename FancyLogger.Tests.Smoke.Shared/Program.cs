@@ -1,10 +1,11 @@
-﻿#define ASSEMBLY_LOGGING
+#define ASSEMBLY_LOGGING
 
 using System;
 using System.Diagnostics;
 using XamarinFiles.FancyLogger.Extensions;
 using XamarinFiles.FancyLogger.Options;
 using static System.Net.HttpStatusCode;
+using static XamarinFiles.FancyLogger.Enums.ErrorOrWarning;
 using static XamarinFiles.PdHelpers.Refit.Bundlers;
 
 namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
@@ -90,11 +91,11 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
 
                 // TODO Add updated test set from old Fancy Logger
 
+                TestPrefixOverrides();
+
                 TestStructuralLoggingMethods();
 
-                TestProblemDetailsLogger();
-
-                TestAllLinesPrefixOverride();
+                TestSpecializedLoggingMethods();
             }
             catch (Exception exception)
             {
@@ -106,9 +107,9 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
 
         #region Tests
 
-        private static void TestAllLinesPrefixOverride()
+        private static void TestPrefixOverrides()
         {
-            FancyLogger!.LogSection("All-Lines Prefix Override Tests");
+            FancyLogger!.LogSection("Prefix Override Tests");
 
             var loggerOptions = new FancyLoggerOptions
             {
@@ -136,26 +137,50 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
                 "Test All Lines Prefix From Arguments");
         }
 
-        private static void TestProblemDetailsLogger()
+        private static void TestSpecializedLoggingMethods()
         {
-            // 400 - BadRequest
+            FancyLogger!.LogSection("Specialized Logging Tests");
+
+            TestProblemDetailsMethod();
+        }
+
+        private static void TestProblemDetailsMethod()
+        {
+            FancyLogger!.LogSubsection("ProblemDetails Logging Tests");
+
+            // 400 - BadRequest - Error
 
             var badRequestProblem =
                 BundleRefitProblemDetails(BadRequest,
                     title: LoginFailedTitle,
-                    detail : "Invalid fields: Username, Password",
+                    detail: "Invalid fields: Username, Password",
+                    developerMessages: new[]
+                    {
+                        "The Username field is required.",
+                        "The Password field is required."
+                    },
                     userMessages: LoginFailedUserMessages);
 
-            FancyLogger!.LogProblemDetails(badRequestProblem);
+            FancyLogger.LogProblemDetails(badRequestProblem, Error);
+
+            // 401 - Unauthorized - Warning
+
+            var unauthorizedProblem =
+                BundleRefitProblemDetails(Unauthorized,
+                    title: LoginFailedTitle,
+                    detail : "Username and/or Password do not match",
+                    userMessages: LoginFailedUserMessages);
+
+            FancyLogger.LogProblemDetails(unauthorizedProblem, Warning);
 
             // TODO Add other ProblemDetails tests from other repo
         }
 
         private static void TestStructuralLoggingMethods()
         {
-            FancyLogger!.LogLongDividerLine();
+            FancyLogger!.LogSection("Structural Logging Tests");
 
-            FancyLogger.LogSection("Structural Logging Tests");
+            FancyLogger.LogLongDividerLine();
 
             FancyLogger.LogSubsection("Subsection One");
 
