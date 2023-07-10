@@ -438,11 +438,14 @@ namespace XamarinFiles.FancyLogger
 
             try
             {
+                var statusCodeDetails =
+                    GetHttpStatusDetails(problemDetails.Status);
+
                 LogErrorOrWarning(errorOrWarning, "PROBLEMDETAILS",
                     newLineAfter:false);
                 LogErrorOrWarning(errorOrWarning,
                     $"Status Code: {Indent}{problemDetails.Status}"
-                    + $" - {HttpStatusDetails[problemDetails.Status].Title}",
+                    + $" - {statusCodeDetails.Title}",
                     newLineAfter:false);
                 LogErrorOrWarning(errorOrWarning,
                     $"Title: {Indent}'{problemDetails.Title}'",
