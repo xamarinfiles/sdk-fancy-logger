@@ -460,14 +460,12 @@ namespace XamarinFiles.FancyLogger
 
                 LogDebug($"Type Info: {Indent}'{problemDetails.Type}'",
                     addIndent: true);
-                if (problemDetails.Extensions.Count > 0)
-                    LogObject<Dictionary<string, object>>(
-                        problemDetails.Extensions, label: "Extensions Dictionary",
-                        newLineAfter: true);
-                if (problemDetails.Errors.Count > 0)
-                    LogObject<Dictionary<string, string[]>>(
-                        problemDetails.Errors, label: "Errors Dictionary",
-                        newLineAfter: false);
+                LogObject<Dictionary<string, object>>(
+                    problemDetails.Extensions, label: "Extensions Dictionary",
+                    newLineAfter: false);
+                LogObject<Dictionary<string, string[]>>(
+                    problemDetails.Errors, label: "Errors Dictionary",
+                    newLineAfter: true);
             }
             catch (Exception exception)
             {
@@ -509,14 +507,12 @@ namespace XamarinFiles.FancyLogger
                 LogObject<Messages>(problemReport.Messages,
                     label: "Messages",
                     newLineAfter: false);
-                if (problemReport.Extensions.Count > 0)
-                    LogObject<Dictionary<string, object>>(
-                        problemReport.Extensions, label: "Extensions Dictionary",
-                        newLineAfter: true);
-                if (problemReport.OtherErrors.Count > 0)
-                    LogObject<Dictionary<string, string[]>>(
-                        problemReport.OtherErrors, label: "OtherErrors Dictionary",
-                        newLineAfter: true);
+                LogObject<Dictionary<string, object>>(
+                    problemReport.Extensions, label: "Extensions Dictionary",
+                    newLineAfter: false);
+                LogObject<Dictionary<string, string[]>>(
+                    problemReport.OtherErrors, label: "OtherErrors Dictionary",
+                    newLineAfter: true);
             }
             catch (Exception exception)
             {
