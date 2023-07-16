@@ -11,6 +11,7 @@ using System.Text.Json.Serialization;
 using XamarinFiles.FancyLogger.Enums;
 using XamarinFiles.FancyLogger.Helpers;
 using XamarinFiles.FancyLogger.Options;
+using XamarinFiles.PdHelpers.Refit.Models;
 using static System.Net.HttpStatusCode;
 using static System.Net.Sockets.SocketError;
 using static System.Net.WebExceptionStatus;
@@ -363,11 +364,11 @@ namespace XamarinFiles.FancyLogger
 
             try
             {
-                var (formattedJson, problemDetails) =
+                var (formattedJson, problemReport) =
                     _serializer.ToJson<T>(obj, keepNulls);
 
-                if (problemDetails != null)
-                    LogProblemDetails(problemDetails, Error);
+                if (problemReport != null)
+                    LogProblemReport(problemReport, Error);
 
                 if (string.IsNullOrWhiteSpace(formattedJson))
                     return;
@@ -459,11 +460,58 @@ namespace XamarinFiles.FancyLogger
 
                 LogDebug($"Type Info: {Indent}'{problemDetails.Type}'",
                     addIndent: true);
-                LogObject<Dictionary<string, string[]>>(
-                    problemDetails.Errors, label: "Errors Dictionary",
-                    newLineAfter: false);
                 LogObject<Dictionary<string, object>>(
                     problemDetails.Extensions, label: "Extensions Dictionary",
+                    newLineAfter: false);
+                LogObject<Dictionary<string, string[]>>(
+                    problemDetails.Errors, label: "Errors Dictionary",
+                    newLineAfter: true);
+            }
+            catch (Exception exception)
+            {
+                LogException(exception);
+            }
+        }
+
+        public void LogProblemReport(ProblemReport problemReport,
+            ErrorOrWarning errorOrWarning)
+        {
+            if (problemReport == null)
+                return;
+
+            try
+            {
+                var statusCodeDetails =
+                    GetHttpStatusDetails(problemReport.StatusCode);
+
+                LogErrorOrWarning(errorOrWarning,
+                    $"Variant: {Indent}'{problemReport.DetailsVariantName}'",
+                    newLineAfter:false);
+
+                LogErrorOrWarning(errorOrWarning,
+                    $"Status Code: {Indent}{problemReport.StatusCode}"
+                    + $" - {statusCodeDetails.Title}",
+                    newLineAfter:false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Title: {Indent}'{problemReport.Title}'",
+                    newLineAfter:false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Detail: {Indent}'{problemReport.Detail}'",
+                    newLineAfter:false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Instance URL: {Indent}'{problemReport.Instance}'",
+                    newLineAfter: true);
+                LogDebug($"Type Info: {Indent}'{problemReport.Type}'",
+                    addIndent: true);
+
+                LogObject<Messages>(problemReport.Messages,
+                    label: "Messages",
+                    newLineAfter: false);
+                LogObject<Dictionary<string, object>>(
+                    problemReport.Extensions, label: "Extensions Dictionary",
+                    newLineAfter: false);
+                LogObject<Dictionary<string, string[]>>(
+                    problemReport.OtherErrors, label: "OtherErrors Dictionary",
                     newLineAfter: true);
             }
             catch (Exception exception)

@@ -3,6 +3,7 @@ using System;
 using System.Net.Http;
 using System.Text.Json;
 using XamarinFiles.FancyLogger.Enums;
+using XamarinFiles.PdHelpers.Refit.Models;
 
 namespace XamarinFiles.FancyLogger
 {
@@ -62,6 +63,9 @@ namespace XamarinFiles.FancyLogger
         #region Specialized Logging
 
         void LogProblemDetails(ProblemDetails problemDetails,
+            ErrorOrWarning errorOrWarning);
+
+        void LogProblemReport(ProblemReport problemReport,
             ErrorOrWarning errorOrWarning);
 
         #endregion
