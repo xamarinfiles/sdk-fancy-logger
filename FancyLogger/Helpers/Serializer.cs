@@ -1,8 +1,8 @@
-﻿using Refit;
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using XamarinFiles.PdHelpers.Refit.Models;
 using static XamarinFiles.PdHelpers.Refit.Extractors;
 
 namespace XamarinFiles.FancyLogger.Helpers
@@ -45,7 +45,7 @@ namespace XamarinFiles.FancyLogger.Helpers
 
         #region Methods
 
-        internal (string, ProblemDetails)
+        internal (string, ProblemReport)
             ToJson<T>(object obj, bool keepNulls = false)
         {
             if (obj is null)
@@ -58,6 +58,8 @@ namespace XamarinFiles.FancyLogger.Helpers
 
             if (obj is string str)
             {
+                // TODO Add logic to handle cycles and deep objects > max levels
+                // See ReferenceHandler.Preserve on JsonSerializerOptions
                 try
                 {
                     if (typeof(T) == typeof(string))
@@ -79,11 +81,11 @@ namespace XamarinFiles.FancyLogger.Helpers
                     // TODO Only show beginning of long string in debug message
                     var debugMessage =
                         $"Unable to deserialize object of type {nameof(T)}: \"{str}\"";
-                    var problemDetails =
-                        ExtractRefitProblemDetails(exception,
+                    var problemReport =
+                        ExtractProblemReport(exception,
                             developerMessages: new[] { debugMessage });
 
-                    return (null, problemDetails);
+                    return (null, problemReport);
                 }
             }
             else
@@ -98,11 +100,11 @@ namespace XamarinFiles.FancyLogger.Helpers
                     var debugMessage =
                         $"Unable to cast object to type {nameof(T)}: \"{obj}\"";
 
-                    var problemDetails =
-                        ExtractRefitProblemDetails(exception,
+                    var problemReport =
+                        ExtractProblemReport(exception,
                             developerMessages: new[] { debugMessage });
 
-                    return (null, problemDetails);
+                    return (null, problemReport);
                 }
             }
 
@@ -121,11 +123,11 @@ namespace XamarinFiles.FancyLogger.Helpers
                 var debugMessage =
                     $"Unable to serialize object of type {nameof(T)}: \"{typedObject}\"";
 
-                var problemDetails =
-                    ExtractRefitProblemDetails(exception,
+                var problemReport =
+                    ExtractProblemReport(exception,
                         developerMessages: new[] { debugMessage });
 
-                return (null, problemDetails);
+                return (null, problemReport);
             }
         }
 

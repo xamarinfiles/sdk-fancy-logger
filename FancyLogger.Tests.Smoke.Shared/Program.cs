@@ -1,12 +1,16 @@
 #define ASSEMBLY_LOGGING
 
+using Refit;
 using System;
 using System.Diagnostics;
+using System.Text.Json;
 using XamarinFiles.FancyLogger.Extensions;
 using XamarinFiles.FancyLogger.Options;
 using static System.Net.HttpStatusCode;
 using static XamarinFiles.FancyLogger.Enums.ErrorOrWarning;
+using static XamarinFiles.FancyLogger.FancyLogger;
 using static XamarinFiles.PdHelpers.Refit.Bundlers;
+using static XamarinFiles.PdHelpers.Refit.Enums.DetailsVariant;
 
 namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
 {
@@ -141,17 +145,36 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
         {
             FancyLogger!.LogSection("Specialized Logging Tests");
 
-            TestProblemDetailsMethod();
+            TestProblemDetailsMethods();
+
+            TestProblemReportMethods();
         }
 
-        private static void TestProblemDetailsMethod()
+        private static void TestProblemDetailsMethods()
         {
             FancyLogger!.LogSubsection("ProblemDetails Logging Tests");
+
+            var problemDetailsStr =
+                " {\"type\":\"https://tools.ietf.org/html/rfc7235#section-3.1\",\"title\":\"Missing or Invalid Authorization Header\",\"status\":401,\"detail\":\"Unable to retrieve user context from Authorization header\",\"instance\":\"/api/user/1/assignments\",\"developerMessages\":[\"Please attach a valid Authorization token which has not expired\"]}";
+
+            var problemDetailsDeserialize =
+                JsonSerializer.Deserialize<ProblemDetails>(problemDetailsStr,
+                    DefaultReadOptions);
+
+            FancyLogger.LogProblemDetails(problemDetailsDeserialize, Warning);
+
+            // TODO Add other ProblemDetails tests from other repo
+        }
+
+        private static void TestProblemReportMethods()
+        {
+            FancyLogger!.LogSubsection("ProblemReport Logging Tests");
 
             // 400 - BadRequest - Error
 
             var badRequestProblem =
-                BundleRefitProblemDetails(BadRequest,
+                BundleProblemReport(ValidationProblem,
+                    BadRequest,
                     title: LoginFailedTitle,
                     detail: "Invalid fields: Username, Password",
                     developerMessages: new[]
@@ -161,19 +184,18 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
                     },
                     userMessages: LoginFailedUserMessages);
 
-            FancyLogger.LogProblemDetails(badRequestProblem, Error);
+            FancyLogger.LogProblemReport(badRequestProblem, Error);
 
             // 401 - Unauthorized - Warning
 
             var unauthorizedProblem =
-                BundleRefitProblemDetails(Unauthorized,
+                BundleProblemReport(GenericProblem,
+                    Unauthorized,
                     title: LoginFailedTitle,
                     detail : "Username and/or Password do not match",
                     userMessages: LoginFailedUserMessages);
 
-            FancyLogger.LogProblemDetails(unauthorizedProblem, Warning);
-
-            // TODO Add other ProblemDetails tests from other repo
+            FancyLogger.LogProblemReport(unauthorizedProblem, Warning);
         }
 
         private static void TestStructuralLoggingMethods()
