@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Version>2.1.1</Version>
@@ -51,7 +51,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
     <PackageReference Include="Refit" Version="7.0.0" />
-    <PackageReference Include="XamarinFiles.PdHelpers.Refit" Version="2.0.1" />
+    <PackageReference Include="XamarinFiles.PdHelpers.Refit" Version="2.0.2" />
   </ItemGroup>
 
 </Project>

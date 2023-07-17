@@ -190,6 +190,7 @@ namespace XamarinFiles.FancyLogger
 
         // Direct Access
 
+        // TODO Log other details of ApiException
         public void LogApiException(ApiException apiException)
         {
             var request = apiException.RequestMessage;
@@ -500,8 +501,12 @@ namespace XamarinFiles.FancyLogger
                     newLineAfter:false);
                 LogErrorOrWarning(errorOrWarning,
                     $"Instance URL: {Indent}'{problemReport.Instance}'",
+                    newLineAfter: false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Http Method: {Indent}'{problemReport.Method}'",
                     newLineAfter: true);
-                LogDebug($"Type Info: {Indent}'{problemReport.Type}'",
+
+                LogDebug($"Type Info: {NewLine}{Indent}{problemReport.Type}",
                     addIndent: true);
 
                 LogObject<Messages>(problemReport.Messages,

@@ -177,6 +177,7 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
                     BadRequest,
                     title: LoginFailedTitle,
                     detail: "Invalid fields: Username, Password",
+                    httpMethod: "POST",
                     developerMessages: new[]
                     {
                         "The Username field is required.",
@@ -193,6 +194,7 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
                     Unauthorized,
                     title: LoginFailedTitle,
                     detail : "Username and/or Password do not match",
+                    httpMethod: "POST",
                     userMessages: LoginFailedUserMessages);
 
             FancyLogger.LogProblemReport(unauthorizedProblem, Warning);
