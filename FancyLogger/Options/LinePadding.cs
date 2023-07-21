@@ -4,6 +4,6 @@
     {
         public int PadLength { get; set; }
 
-        public string PadString { get; set; }
+        public string PadString { get; set; } = " ";
     }
 }

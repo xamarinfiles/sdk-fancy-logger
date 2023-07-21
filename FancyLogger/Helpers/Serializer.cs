@@ -45,8 +45,8 @@ namespace XamarinFiles.FancyLogger.Helpers
 
         #region Methods
 
-        internal (string, ProblemReport)
-            ToJson<T>(object obj, bool keepNulls = false)
+        internal (string?, ProblemReport?)
+            ToJson<T>(object? obj, bool keepNulls = false)
         {
             if (obj is null)
                 // TODO Case where need to return message about null object?

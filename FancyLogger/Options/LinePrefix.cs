@@ -2,6 +2,6 @@
 {
     public class LinePrefix : LinePadding
     {
-        public string PrefixString { get; set; }
+        public string PrefixString { get; set; } = "LOG";
     }
 }
