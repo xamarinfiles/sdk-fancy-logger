@@ -35,7 +35,6 @@ namespace XamarinFiles.FancyLogger.Helpers
             return logger;
         }
 
-
         #endregion
 
         #region Private
@@ -45,12 +44,8 @@ namespace XamarinFiles.FancyLogger.Helpers
             // Create a logger factory
             var loggerFactory = LoggerFactory.Create(
                 builder => builder
-                    //#if DEBUG
                     .AddDebug()
                     .SetMinimumLevel(LogLevel.Trace)
-            //#else
-            //                    .SetMinimumLevel(LogLevel.Information)
-            //#endif
             );
 
             return loggerFactory;
