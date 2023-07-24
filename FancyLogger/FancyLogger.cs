@@ -85,7 +85,7 @@ namespace XamarinFiles.FancyLogger
                 {
                     loggerOptions.AllLines.PadLength = (int) allLinesPadLength;
                 }
-                LoggerOptions =loggerOptions;
+                LoggerOptions = loggerOptions;
 
                 ReadJsonOptions = readJsonOptions ?? DefaultReadOptions;
                 WriteJsonOptions = writeJsonOptions ?? DefaultWriteJsonOptions;
