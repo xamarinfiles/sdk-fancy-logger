@@ -2,6 +2,7 @@
 using Refit;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
@@ -61,61 +62,69 @@ namespace XamarinFiles.FancyLogger
         // TODO Add ctor to tie default (non-hosted) logger directly to type
 
         // For static classes or multiple logger instances with custom prefixes
-        public FancyLogger(ILogger logger = null,
+        public FancyLogger(ILogger? logger = null,
             // Common overrides => create direct paths to avoid options object
-            string allLinesPrefix = null,
+            string? allLinesPrefix = null,
             int? allLinesPadLength = null,
 
             // All overrides => create path to override all options at once
-            FancyLoggerOptions loggerOptions = null,
+            FancyLoggerOptions? loggerOptions = null,
 
             // Serializer overrides  => System.Text.Json options for LogObject
-            JsonSerializerOptions readJsonOptions = null,
-            JsonSerializerOptions writeJsonOptions = null)
+            JsonSerializerOptions? readJsonOptions = null,
+            JsonSerializerOptions? writeJsonOptions = null)
         {
-            LoggerOptions = loggerOptions ?? DefaultLoggerOptions;
-            ReadJsonOptions = readJsonOptions ?? DefaultReadOptions;
-            WriteJsonOptions = writeJsonOptions ?? DefaultWriteJsonOptions;
-
-            if (!string.IsNullOrWhiteSpace(allLinesPrefix))
+            try
             {
-                LoggerOptions!.AllLines.PrefixString = allLinesPrefix;
+                loggerOptions ??= DefaultLoggerOptions;
+                if (allLinesPrefix is not null)
+                {
+                    loggerOptions.AllLines.PrefixString = allLinesPrefix;
+                }
+                if (allLinesPadLength is not null)
+                {
+                    loggerOptions.AllLines.PadLength = (int) allLinesPadLength;
+                }
+                LoggerOptions =loggerOptions;
+
+                ReadJsonOptions = readJsonOptions ?? DefaultReadOptions;
+                WriteJsonOptions = writeJsonOptions ?? DefaultWriteJsonOptions;
+
+                // Map Shorthand Properties
+                AllLinesPrefixString = LoggerOptions.AllLines.PrefixString;
+                AllLinesPadLength = LoggerOptions.AllLines.PadLength;
+                AllLinesPadString = LoggerOptions.AllLines.PadString;
+
+                LongDividerLinesPadLength = LoggerOptions.LongDividerLines.PadLength;
+                LongDividerLinesPadString = LoggerOptions.LongDividerLines.PadString;
+
+                ShortDividerLinesPadLength = LoggerOptions.ShortDividerLines.PadLength;
+                ShortDividerLinesPadString = LoggerOptions.ShortDividerLines.PadString;
+
+                SectionLinesPadLength = LoggerOptions.SectionLines.PadLength;
+                SectionLinesPadString = LoggerOptions.SectionLines.PadString;
+
+                SubsectionLinesPadLength = LoggerOptions.SubsectionLines.PadLength;
+                SubsectionLinesPadString = LoggerOptions.SubsectionLines.PadString;
+
+                HeaderLinesPadLength = LoggerOptions.HeaderLines.PadLength;
+                HeaderLinesPadString = LoggerOptions.HeaderLines.PadString;
+
+                FooterLinesPadLength = LoggerOptions.FooterLines.PadLength;
+                FooterLinesPadString = LoggerOptions.FooterLines.PadString;
+
+
+                _logger = logger ?? LoggerCreator.CreateLogger(
+                    AllLinesPrefixString, AllLinesPadLength,
+                    AllLinesPadString);
+                _serializer = new Serializer(ReadJsonOptions, WriteJsonOptions);
             }
-            if (allLinesPadLength is not null)
+            catch (Exception exception)
             {
-                LoggerOptions!.AllLines.PadLength = (int) allLinesPadLength;
+                Debug.WriteLine($"EXCEPTION: {exception.Message}");
+
+                throw;
             }
-
-            MapShorthandProperties();
-
-            _logger = logger ?? LoggerCreator.CreateLogger(AllLinesPrefixString,
-                AllLinesPadLength, AllLinesPadString);
-            _serializer = new Serializer(ReadJsonOptions, WriteJsonOptions);
-        }
-
-        private void MapShorthandProperties()
-        {
-            AllLinesPrefixString = LoggerOptions!.AllLines.PrefixString;
-            AllLinesPadLength = LoggerOptions!.AllLines.PadLength;
-            AllLinesPadString = LoggerOptions.AllLines.PadString;
-
-            LongDividerLinesPadLength = LoggerOptions.LongDividerLines.PadLength;
-            LongDividerLinesPadString = LoggerOptions.LongDividerLines.PadString;
-
-            ShortDividerLinesPadLength = LoggerOptions.ShortDividerLines.PadLength;
-            ShortDividerLinesPadString = LoggerOptions.ShortDividerLines.PadString;
-
-            SectionLinesPadLength = LoggerOptions.SectionLines.PadLength;
-            SectionLinesPadString = LoggerOptions.SectionLines.PadString;
-
-            SubsectionLinesPadLength = LoggerOptions.SubsectionLines.PadLength;
-            SubsectionLinesPadString = LoggerOptions.SubsectionLines.PadString;
-
-            HeaderLinesPadLength = LoggerOptions.HeaderLines.PadLength;
-            HeaderLinesPadString = LoggerOptions.HeaderLines.PadString;
-
-            FooterLinesPadLength = LoggerOptions.FooterLines.PadLength;
-            FooterLinesPadString = LoggerOptions.FooterLines.PadString;
         }
 
         #endregion
@@ -190,8 +199,12 @@ namespace XamarinFiles.FancyLogger
 
         // Direct Access
 
-        public void LogApiException(ApiException apiException)
+        // TODO Log other details of ApiException
+        public void LogApiException(ApiException? apiException)
         {
+            if (apiException == null)
+                return;
+
             var request = apiException.RequestMessage;
 
             LogCommonException(apiException, "API EXCEPTION");
@@ -199,7 +212,7 @@ namespace XamarinFiles.FancyLogger
             LogWarning(
                 $"OPERATION:  {request.Method} - {apiException.Uri}" + NewLine);
 
-            if (string.IsNullOrWhiteSpace(apiException.Content))
+            if (apiException.Content is null)
                 return;
 
             // TODO Document expectation of ProblemDetails or handle alternative
@@ -208,9 +221,12 @@ namespace XamarinFiles.FancyLogger
 
         // TODO Handle aggregate and nested exceptions - see old FL library
         // TODO Handle stack traces - see old FL library
-        public void LogCommonException(Exception exception, string outerLabel,
+        public void LogCommonException(Exception? exception, string outerLabel,
             string innerLabel = "INNER EXCEPTION")
         {
+            if (exception is null)
+                return;
+
             LogWarning($"{outerLabel}:  {exception.Message}{NewLine}");
 
             var innerExceptionMessage = exception.InnerException?.Message;
@@ -227,8 +243,11 @@ namespace XamarinFiles.FancyLogger
         }
 
         [SuppressMessage("ReSharper", "MergeIntoPattern")]
-        public void LogHttpRequestException(HttpRequestException requestException)
+        public void LogHttpRequestException(HttpRequestException? requestException)
         {
+            if (requestException == null)
+                return;
+
             const string outerExceptionLabel = "HTTP REQUEST EXCEPTION";
             // TODO Use when > .NET Standard 2.0 for Xamarin.Forms
             //var outerStatusCode = requestException.StatusCode;
@@ -270,8 +289,11 @@ namespace XamarinFiles.FancyLogger
                 innerExceptionLabel);
         }
 
-        public void LogJsonException(JsonException jsonException)
+        public void LogJsonException(JsonException? jsonException)
         {
+            if (jsonException is null)
+                return;
+
             LogCommonException(jsonException, "JSON EXCEPTION");
 
             LogWarning($"LINE:  {jsonException.LineNumber}"
@@ -284,7 +306,7 @@ namespace XamarinFiles.FancyLogger
         #region Public Methods - General Logging
 
         public void LogDebug(string format, bool addIndent = false,
-            bool newLineAfter = false, params object[] args)
+            bool newLineAfter = false, params object[]? args)
         {
             try
             {
@@ -355,8 +377,8 @@ namespace XamarinFiles.FancyLogger
             _logger.LogInformation("{message}", message);
         }
 
-        public void LogObject<T>(object obj, bool ignore = false,
-            bool keepNulls = false, string label = null, bool addIndent = true,
+        public void LogObject<T>(object? obj, bool ignore = false,
+            bool keepNulls = false, string? label = null, bool addIndent = true,
             bool newLineAfter = true)
         {
             if (ignore || obj is null)
@@ -382,9 +404,12 @@ namespace XamarinFiles.FancyLogger
             }
         }
 
-        public void LogScalar(string label, string value, bool addIndent = true,
+        public void LogScalar(string label, string? value, bool addIndent = true,
             bool newLineAfter = true)
         {
+            // TODO Add flag to skip if null?
+            value ??= "NULL";
+
             var message =
                 // Difference in prefix length: "Debug" vs "Information"
                 new string(' ', 6) +
@@ -396,7 +421,7 @@ namespace XamarinFiles.FancyLogger
         }
 
         public void LogTrace(string format, bool addIndent = false,
-            bool newLineAfter = false, params object[] args)
+            bool newLineAfter = false, params object[]? args)
         {
             var messagePrefix =
                 // Difference in prefix length: "Trace" vs "Information"
@@ -431,7 +456,7 @@ namespace XamarinFiles.FancyLogger
 
         #region Public Methods - Specialized Logging
 
-        public void LogProblemDetails(ProblemDetails problemDetails,
+        public void LogProblemDetails(ProblemDetails? problemDetails,
             ErrorOrWarning errorOrWarning)
         {
             if (problemDetails == null)
@@ -473,7 +498,7 @@ namespace XamarinFiles.FancyLogger
             }
         }
 
-        public void LogProblemReport(ProblemReport problemReport,
+        public void LogProblemReport(ProblemReport? problemReport,
             ErrorOrWarning errorOrWarning)
         {
             if (problemReport == null)
@@ -500,8 +525,12 @@ namespace XamarinFiles.FancyLogger
                     newLineAfter:false);
                 LogErrorOrWarning(errorOrWarning,
                     $"Instance URL: {Indent}'{problemReport.Instance}'",
+                    newLineAfter: false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Http Method: {Indent}'{problemReport.Method}'",
                     newLineAfter: true);
-                LogDebug($"Type Info: {Indent}'{problemReport.Type}'",
+
+                LogDebug($"Type Info: {NewLine}{Indent}{problemReport.Type}",
                     addIndent: true);
 
                 LogObject<Messages>(problemReport.Messages,

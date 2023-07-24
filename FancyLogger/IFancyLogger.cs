@@ -46,10 +46,10 @@ namespace XamarinFiles.FancyLogger
             bool newLineAfter = true, params object[] args);
 
         void LogObject<T>(object obj, bool ignore = false,
-            bool keepNulls = false, string label = null, bool addIndent = false,
+            bool keepNulls = false, string? label = null, bool addIndent = false,
             bool newLineAfter = true);
 
-        void LogScalar(string label, string value,  bool addIndent = false,
+        void LogScalar(string label, string? value,  bool addIndent = false,
             bool newLineAfter = false);
 
         void LogTrace(string format, bool addIndent = false,
@@ -62,10 +62,10 @@ namespace XamarinFiles.FancyLogger
 
         #region Specialized Logging
 
-        void LogProblemDetails(ProblemDetails problemDetails,
+        void LogProblemDetails(ProblemDetails? problemDetails,
             ErrorOrWarning errorOrWarning);
 
-        void LogProblemReport(ProblemReport problemReport,
+        void LogProblemReport(ProblemReport? problemReport,
             ErrorOrWarning errorOrWarning);
 
         #endregion

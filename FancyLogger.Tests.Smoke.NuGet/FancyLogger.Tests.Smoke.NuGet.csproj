@@ -2,10 +2,13 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
+    <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
     <AssemblyName>XamarinFiles.$(MSBuildProjectName)</AssemblyName>
     <RootNamespace>XamarinFiles.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+    <!-- Suppress warnings to upgrade TargetFramework to net6.0 or later until done with XF -->
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="XamarinFiles.FancyLogger" Version="2.1.1" />
+    <PackageReference Include="XamarinFiles.FancyLogger" Version="2.1.2" />
   </ItemGroup>
 
 </Project>

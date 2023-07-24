@@ -5,7 +5,7 @@ namespace XamarinFiles.FancyLogger.Helpers
 {
     internal static class StringExtensions
     {
-        internal static string PadRight(this string text, int totalWidth,
+        internal static string PadRight(this string? text, int totalWidth,
             string paddingStr)
         {
             text ??= "";
