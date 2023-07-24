@@ -1,13 +1,12 @@
 using System.Reflection;
 using static System.String;
-using static System.StringSplitOptions;
 
 // Source: https://github.com/xamarinfiles/library-fancy-logger-extensions
 //
-// Problem: unable to use shared project due to anti-virus issue with AssemblyLogger
+// Problem: when AssemblyLogger is in a separate library and accessed by another
+// library, it triggers an anti-virus flag for assembly passing across libraries
 //
-// Solution: copy file to each repo and add to each test project as shared file
-// to avoid duplicating code into each test program
+// Solution: copy shared project to each repo and add to each test project
 namespace XamarinFiles.FancyLogger.Extensions
 {
     internal static class LogPrefixHelper
@@ -31,19 +30,14 @@ namespace XamarinFiles.FancyLogger.Extensions
             if (IsNullOrWhiteSpace(assemblyName))
                 return "";
 
-            var splitSegments =
-                assemblyName.Split(rootAssemblyNamespace,
-                    RemoveEmptyEntries);
+            var assemblyNameSpaceTail =
+                assemblyName[rootAssemblyNamespace.Length..];
 
-            if (splitSegments.Length < 1)
-                return defaultLogPrefix;
-
-            var logPrefix = splitSegments[0];
-
-            return logPrefix;
+            return IsNullOrEmpty(assemblyNameSpaceTail)
+                ? defaultLogPrefix
+                : assemblyNameSpaceTail;
         }
 
         #endregion
     }
 }
- 

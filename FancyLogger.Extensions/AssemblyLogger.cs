@@ -8,20 +8,23 @@ using System.Runtime.Versioning;
 using static System.Globalization.CultureInfo;
 using static XamarinFiles.FancyLogger.Helpers.Characters;
 
+// TODO Add blanks to labels based on difference in lengths instead of indent
+
 // Source: https://github.com/xamarinfiles/library-fancy-logger-extensions
 //
-// Problem: when AssemblyLogger is in a shared project and accessed by another
-// project, it triggers an anti-virus flag for assembly passing across projects
+// Problem: when AssemblyLogger is in a separate library and accessed by another
+// library, it triggers an anti-virus flag for assembly passing across libraries
 //
-// Solution: copy file to each repo and add to each test project as shared file
-// to avoid duplicating code into each test program
+// Solution: copy shared project to each repo and add to each test project
 namespace XamarinFiles.FancyLogger.Extensions
 {
-    internal class AssemblyLogger
+    public class AssemblyLogger
     {
         #region Fields
 
         private readonly string _ancestorPath;
+
+        private readonly int _ancestorPathLength;
 
         private readonly Assembly _assembly;
 
@@ -29,6 +32,12 @@ namespace XamarinFiles.FancyLogger.Extensions
 
         // TODO Change to true or eliminate when add more CultureInfo processing
         private const bool DefaultShowCultureInfo = false;
+
+        private const string DomainAssemblyLabel = "Domain Assembly";
+
+        private const string ExecutingAssemblyLabel = "Executing Assembly";
+
+        private const string ReferenceAssemblyLabel = "Reference Assembly";
 
         private const string OrganizationPrefix = "XamarinFiles";
 
@@ -51,6 +60,7 @@ namespace XamarinFiles.FancyLogger.Extensions
             _assembly = Assembly.GetExecutingAssembly();
             _assemblyPath = _assembly.Location;
             _ancestorPath = GetAncestorPath(_assemblyPath);
+            _ancestorPathLength = _ancestorPath.Length;
         }
 
         #endregion
@@ -64,12 +74,15 @@ namespace XamarinFiles.FancyLogger.Extensions
 
         #region Methods
 
+        // TODO Nest assemblies once add indent levels like old FL library
         public void LogAssemblies(
             bool showCultureInfo = DefaultShowCultureInfo)
         {
             ShowCultureInfo = showCultureInfo;
 
-            FancyLogger.LogSection(OrganizationPrefix + " Assemblies");
+            // Organization Path (assumes same directory base) and Project Path
+
+            LogOrganizationPath();
 
             // Executing Assembly
 
@@ -80,7 +93,7 @@ namespace XamarinFiles.FancyLogger.Extensions
             var domainAssemblies =
                 AppDomain.CurrentDomain.GetAssemblies()
                     .ToList()
-                    .Where(assembly => assembly.FullName is not null
+                    .Where(assembly => !string.IsNullOrWhiteSpace(assembly.FullName)
                         && assembly.FullName.StartsWith(PackagePrefix)
                         && assembly.Location != _assemblyPath)
                     .OrderBy(assembly => assembly.FullName);
@@ -103,8 +116,10 @@ namespace XamarinFiles.FancyLogger.Extensions
             }
         }
 
+        #region Assembly Paths
+
         // TODO Add number of levels up to common ancestor or some generic logic
-        private static string GetAncestorPath(string assemblyLocation)
+        private string GetAncestorPath(string assemblyLocation)
         {
             // Assumes the following directory hierarchy of local source paths:
             // 1.) user or organization
@@ -128,23 +143,52 @@ namespace XamarinFiles.FancyLogger.Extensions
             return ancestorPath;
         }
 
-        private void LogExecutingAssembly(Assembly? executingAssembly)
+        private void LogOrganizationPath()
         {
-            const string executingAssemblyLabel = "Executing Assembly";
+            FancyLogger.LogSection(OrganizationPrefix + " Assemblies");
 
-            LogAssembly(executingAssemblyLabel, executingAssembly);
+            FancyLogger.LogScalar("Ancestor Path",
+                NewLine + Indent + _ancestorPath, addIndent: true,
+                newLineAfter: true);
         }
 
-        private void LogDomainAssembly(Assembly? domainAssembly)
+        private void LogRelativePath(Assembly assembly, bool isExecutingAssembly)
         {
-            const string domainAssemblyLabel = "Domain Assembly";
+            if (!isExecutingAssembly)
+                return;
 
-            LogAssembly(domainAssemblyLabel, domainAssembly);
+            var location = assembly.Location;
+            var path = location[_ancestorPathLength..];
+            var relativePath = Path.GetDirectoryName(path);
+
+            FancyLogger.LogScalar("Relative Path",
+                NewLine + Indent + relativePath, addIndent: true,
+                newLineAfter: true);
         }
 
-        private void LogAssembly(string assemblyNameLabel, Assembly? assembly)
+        #endregion
+
+        #region Assembly Types
+
+        private void LogExecutingAssembly(Assembly executingAssembly)
         {
-            if (assembly == null)
+            LogAssembly(executingAssembly, ExecutingAssemblyLabel, true);
+        }
+
+        private void LogDomainAssembly(Assembly domainAssembly)
+        {
+            LogAssembly(domainAssembly, DomainAssemblyLabel);
+        }
+
+        private void LogReferenceAssembly(AssemblyName referencedAssemblyName)
+        {
+            LogAssemblyName(referencedAssemblyName, ReferenceAssemblyLabel);
+        }
+
+        private void LogAssembly(Assembly? assembly, string assemblyNameLabel,
+            bool isExecutingAssembly = false)
+        {
+            if (assembly is null)
                 return;
 
             // TODO Account for all cases where AssemblyName is null
@@ -152,35 +196,66 @@ namespace XamarinFiles.FancyLogger.Extensions
 
             LogName(assemblyNameLabel, assemblyName);
 
+            LogRelativePath(assembly, isExecutingAssembly);
+
             LogVersion(assemblyName);
 
             LogTargetFramework(assembly);
 
-            LogCultureInfo(assemblyName.CultureInfo);
+            LogCommonRuntime(assembly);
 
-            LogPublicKeyTokenOrLocation(assemblyName, assembly.Location);
+            LogBuildConfiguration(assembly);
+
+            LogPublicKeyToken(assemblyName);
+
+            LogCultureInfo(assemblyName.CultureInfo, newLineAfter: true);
         }
 
-        private void LogName(string assemblyLabel,
-            AssemblyName assemblyName, bool addIndent = false,
+        private void LogAssemblyName(AssemblyName? assemblyName,
+            string assemblyNameLabel)
+        {
+            if (assemblyName is null)
+                return;
+
+            LogName(assemblyNameLabel, assemblyName);
+
+            LogVersion(assemblyName);
+
+            // TODO Easy way to get from referenced assembly:
+            // TargetFramework?
+            // ImageRuntimeVersion?
+
+            // TODO
+            LogPublicKeyToken(assemblyName);
+
+            LogCultureInfo(assemblyName.CultureInfo, newLineAfter: true);
+        }
+
+        #endregion
+
+        #region Access to Common Assembly/AssemblyName Properties
+
+        private void LogName(string assemblyLabel, AssemblyName assemblyName,
             bool newLineAfter = true)
         {
-            FancyLogger.LogInfo($"{assemblyLabel}: {assemblyName.Name}",
-                addIndent, newLineAfter);
+            FancyLogger.LogInfo(
+                $"{assemblyLabel}:{Indent}{assemblyName.Name}",
+                addIndent: true, newLineAfter: newLineAfter);
         }
 
         private void LogVersion(AssemblyName assemblyName,
-            bool addIndent = false, bool newLineAfter = false)
+            bool newLineAfter = false)
         {
             if (assemblyName.Version is null)
                 return;
 
-            FancyLogger.LogScalar("Version" + Indent,
-                assemblyName.Version.ToString(), addIndent, newLineAfter);
+            FancyLogger.LogScalar("Version" + Indent + Indent,
+                assemblyName.Version.ToString(), addIndent: true,
+                newLineAfter: newLineAfter);
         }
 
         private void LogTargetFramework(Assembly assembly,
-            bool addIndent = false, bool newLineAfter = false)
+            bool newLineAfter = false)
         {
             var frameworkAttribute =
                 assembly.GetCustomAttribute<TargetFrameworkAttribute>()!;
@@ -189,12 +264,41 @@ namespace XamarinFiles.FancyLogger.Extensions
             if (string.IsNullOrEmpty(frameworkName))
                 return;
 
-            FancyLogger.LogScalar("Framework", frameworkName,
-                addIndent, newLineAfter);
+            FancyLogger.LogScalar("Framework" + Indent,
+                frameworkName, addIndent: true,
+                newLineAfter: newLineAfter);
+        }
+
+        private void LogBuildConfiguration(Assembly assembly,
+            bool newLineAfter = false)
+        {
+            var configurationAttribute =
+                assembly.GetCustomAttribute<AssemblyConfigurationAttribute>()!;
+            var configuration = configurationAttribute.Configuration;
+
+            if (string.IsNullOrEmpty(configuration))
+                return;
+
+            FancyLogger.LogScalar("Configuration",
+                configuration, addIndent: true,
+                newLineAfter: newLineAfter);
+        }
+
+        private void LogCommonRuntime(Assembly assembly,
+            bool newLineAfter = false)
+        {
+            var runtimeVersion = assembly.ImageRuntimeVersion;
+
+            if (string.IsNullOrEmpty(runtimeVersion))
+                return;
+
+            FancyLogger.LogScalar("Runtime" + Indent + Indent,
+                "CLR " + runtimeVersion, addIndent: true,
+                newLineAfter: newLineAfter);
         }
 
         private void LogCultureInfo(CultureInfo? cultureInfo,
-            bool addIndent = false, bool newLineAfter = false)
+            bool newLineAfter = false)
         {
             if (!ShowCultureInfo || cultureInfo is null)
                 return;
@@ -204,43 +308,30 @@ namespace XamarinFiles.FancyLogger.Extensions
                 ? "neutral"
                 : cultureInfo.DisplayName;
 
-            FancyLogger.LogScalar("Culture" + Indent, cultureName,
-                addIndent, newLineAfter);
+            FancyLogger.LogScalar("Culture" + Indent + Indent,
+                cultureName,
+                addIndent: true, newLineAfter: newLineAfter);
         }
 
-        private void LogPublicKeyTokenOrLocation(
-            AssemblyName assemblyName, string? assemblyLocation = null,
-            bool addIndent = false, bool newLineAfter = true)
+        private void LogPublicKeyToken(AssemblyName assemblyName,
+            bool newLineAfter = true)
         {
-            var publicKeyToken =
-                GetPublicKeyToken(assemblyName.GetPublicKeyToken());
+            var publicKeyTokenArray = assemblyName.GetPublicKeyToken();
+            var publicKeyTokenStr = GetPublicKeyToken(publicKeyTokenArray);
 
-            if (publicKeyToken != string.Empty)
-            {
-                FancyLogger.LogScalar("PublicKeyToken", publicKeyToken,
-                    addIndent, newLineAfter);
-            }
-            else if (!string.IsNullOrEmpty(assemblyLocation))
-            {
-                var relativePath =
-                    Path.GetDirectoryName(assemblyLocation[_ancestorPath.Length..]);
+            if (publicKeyTokenStr == string.Empty)
+                return;
 
-                FancyLogger.LogScalar("Location", relativePath,
-                    addIndent, newLineAfter);
-            }
-            else
-            {
-                // TODO Easy way to get Location of referenced assembly?
-                FancyLogger.LogWarning("No Public Key Token or Location",
-                    addIndent, newLineAfter);
-            }
+            FancyLogger.LogScalar("Public Key" + Indent,
+                    publicKeyTokenStr, addIndent: true,
+                    newLineAfter: newLineAfter);
         }
 
         private static string GetPublicKeyToken(byte[]? byteArray)
         {
             var byteString = string.Empty;
 
-            if (byteArray is not { Length: > 0 })
+            if (byteArray is null || byteArray.Length < 1)
                 return byteString;
 
             for (var i = 0; i < byteArray.GetLength(0); i++)
@@ -249,30 +340,7 @@ namespace XamarinFiles.FancyLogger.Extensions
             return byteString;
         }
 
-        private void LogReferenceAssembly(AssemblyName? referencedAssemblyName)
-        {
-            const string referenceAssemblyLabel = "Reference Assembly";
-
-            LogAssemblyName(referenceAssemblyLabel, referencedAssemblyName);
-        }
-
-        private void LogAssemblyName(string assemblyNameLabel,
-            AssemblyName? assemblyName)
-        {
-            if (assemblyName == null)
-                return;
-
-            LogName(assemblyNameLabel, assemblyName, addIndent: true);
-
-            LogVersion(assemblyName, addIndent: true);
-
-            // TODO Easy way to get Target Framework of referenced assembly?
-
-            LogCultureInfo(assemblyName.CultureInfo, addIndent: true);
-
-            LogPublicKeyTokenOrLocation(assemblyName, assemblyLocation: null,
-                addIndent: true);
-        }
+        #endregion
 
         #endregion
     }
