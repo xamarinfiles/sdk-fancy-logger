@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0;net7.0</TargetFrameworks>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
     <AssemblyName>XamarinFiles.$(MSBuildProjectName)</AssemblyName>
@@ -12,13 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\FancyLogger.Extensions\AssemblyLogger.cs" Link="AssemblyLogger.cs" />
-    <Compile Include="..\FancyLogger.Extensions\LogPrefixHelper.cs" Link="LogPrefixHelper.cs" />
-    <Compile Include="..\FancyLogger.Tests.Smoke.Shared\Program.cs" Link="Program.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\FancyLogger\FancyLogger.csproj" />
   </ItemGroup>
+
+  <Import Project="..\FancyLogger.Extensions\FancyLogger.Extensions.projitems" Label="Shared" />
+
+  <Import Project="..\FancyLogger.Tests.Smoke.Shared\FancyLogger.Tests.Smoke.Shared.projitems" Label="Shared" />
 
 </Project>
