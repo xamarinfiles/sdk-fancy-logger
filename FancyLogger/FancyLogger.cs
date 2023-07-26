@@ -9,16 +9,15 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using XamarinFiles.FancyLogger.Enums;
 using XamarinFiles.FancyLogger.Helpers;
 using XamarinFiles.FancyLogger.Options;
+using XamarinFiles.PdHelpers.Refit.Enums;
 using XamarinFiles.PdHelpers.Refit.Models;
 using static System.Net.HttpStatusCode;
 using static System.Net.Sockets.SocketError;
 using static System.Net.WebExceptionStatus;
-using static XamarinFiles.FancyLogger.Enums.ErrorOrWarning;
 using static XamarinFiles.FancyLogger.Helpers.Characters;
-using static XamarinFiles.PdHelpers.Shared.StatusCodeDetails;
+using static XamarinFiles.PdHelpers.Refit.Enums.ErrorOrWarning;
 
 namespace XamarinFiles.FancyLogger
 {
@@ -456,6 +455,7 @@ namespace XamarinFiles.FancyLogger
 
         #region Public Methods - Specialized Logging
 
+        // TODO Fix column alignments
         public void LogProblemDetails(ProblemDetails? problemDetails,
             ErrorOrWarning errorOrWarning)
         {
@@ -464,14 +464,10 @@ namespace XamarinFiles.FancyLogger
 
             try
             {
-                var statusCodeDetails =
-                    GetHttpStatusDetails(problemDetails.Status);
-
                 LogErrorOrWarning(errorOrWarning, "PROBLEMDETAILS",
                     newLineAfter:false);
                 LogErrorOrWarning(errorOrWarning,
-                    $"Status Code: {Indent}{problemDetails.Status}"
-                    + $" - {statusCodeDetails.Title}",
+                    $"Status Code: {Indent}{problemDetails.Status}",
                     newLineAfter:false);
                 LogErrorOrWarning(errorOrWarning,
                     $"Title: {Indent}'{problemDetails.Title}'",
@@ -498,6 +494,7 @@ namespace XamarinFiles.FancyLogger
             }
         }
 
+        // TODO Fix column alignments
         public void LogProblemReport(ProblemReport? problemReport,
             ErrorOrWarning errorOrWarning)
         {
@@ -506,42 +503,60 @@ namespace XamarinFiles.FancyLogger
 
             try
             {
-                var statusCodeDetails =
-                    GetHttpStatusDetails(problemReport.StatusCode);
-
                 LogErrorOrWarning(errorOrWarning,
                     $"Variant: {Indent}'{problemReport.DetailsVariantName}'",
                     newLineAfter:false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Error or Warning: '{problemReport.ErrorOrWarning}'",
+                    newLineAfter:true);
 
+                var appStateDetails = problemReport.AppStateDetails;
                 LogErrorOrWarning(errorOrWarning,
-                    $"Status Code: {Indent}{problemReport.StatusCode}"
-                    + $" - {statusCodeDetails.Title}",
-                    newLineAfter:false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"Title: {Indent}'{problemReport.Title}'",
-                    newLineAfter:false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"Detail: {Indent}'{problemReport.Detail}'",
-                    newLineAfter:false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"Instance URL: {Indent}'{problemReport.Instance}'",
+                    $"App Location: {Indent}'{appStateDetails?.Location}'",
                     newLineAfter: false);
                 LogErrorOrWarning(errorOrWarning,
-                    $"Http Method: {Indent}'{problemReport.Method}'",
+                    $"App Operation: {Indent}'{appStateDetails?.Operation}'",
                     newLineAfter: true);
 
-                LogDebug($"Type Info: {NewLine}{Indent}{problemReport.Type}",
-                    addIndent: true);
+                var requestDetails = problemReport.RequestDetails;
+                LogErrorOrWarning(errorOrWarning,
+                    $"Request Method: {Indent}'{requestDetails?.HttpMethodName}'",
+                    newLineAfter: false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Request Resource: {Indent}'{requestDetails?.ResourceName}'",
+                    newLineAfter: false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Request Uri: {Indent}'{requestDetails?.UriString}'",
+                    newLineAfter: true);
 
-                LogObject<Messages>(problemReport.Messages,
+                var responseDetails = problemReport.ResponseDetails;
+                LogErrorOrWarning(errorOrWarning,
+                    $"Status Code: {Indent}{responseDetails.StatusCodeInt}"
+                    + $" - {responseDetails.StatusTitle}",
+                    newLineAfter:false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Title: {Indent}'{responseDetails.ProblemSummary}'",
+                    newLineAfter:false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Detail: {Indent}'{responseDetails.ProblemExplanation}'",
+                    newLineAfter:false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Instance URL: {Indent}'{responseDetails.InstanceUri}'",
+                    newLineAfter: false);
+                LogErrorOrWarning(errorOrWarning,
+                    $"Type Info: {Indent}'{responseDetails.StatusReference}'",
+                    newLineAfter: false);
+
+                LogObject<Messages>(problemReport.ImportantMessages,
                     label: "Messages",
                     newLineAfter: false);
-                LogObject<Dictionary<string, object>>(
-                    problemReport.Extensions, label: "Extensions Dictionary",
-                    newLineAfter: false);
-                LogObject<Dictionary<string, string[]>>(
-                    problemReport.OtherErrors, label: "OtherErrors Dictionary",
-                    newLineAfter: true);
+                // TODO
+                //LogObject<Dictionary<string, object>>(
+                //    problemReport.Extensions, label: "Extensions Dictionary",
+                //    newLineAfter: false);
+                //LogObject<Dictionary<string, string[]>>(
+                //    problemReport.OtherErrors, label: "OtherErrors Dictionary",
+                //    newLineAfter: true);
             }
             catch (Exception exception)
             {
