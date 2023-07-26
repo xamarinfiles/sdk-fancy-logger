@@ -2,7 +2,7 @@ using Refit;
 using System;
 using System.Net.Http;
 using System.Text.Json;
-using XamarinFiles.FancyLogger.Enums;
+using XamarinFiles.PdHelpers.Refit.Enums;
 using XamarinFiles.PdHelpers.Refit.Models;
 
 namespace XamarinFiles.FancyLogger

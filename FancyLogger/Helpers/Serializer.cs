@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using XamarinFiles.PdHelpers.Refit.Models;
+using static XamarinFiles.PdHelpers.Refit.Enums.ErrorOrWarning;
 using static XamarinFiles.PdHelpers.Refit.Extractors;
 
 namespace XamarinFiles.FancyLogger.Helpers
@@ -11,6 +12,10 @@ namespace XamarinFiles.FancyLogger.Helpers
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     internal class Serializer
     {
+        private AppStateDetails?
+            _appStateDetails = AppStateDetails.Create(
+                "FancyLogger.Serializer", "ToJson<T>");
+
         #region Fields
 
         #endregion
@@ -22,13 +27,19 @@ namespace XamarinFiles.FancyLogger.Helpers
         {
             SharedReadJsonOptions = readJsonOptions;
 
-            writeJsonOptions.DefaultIgnoreCondition =
-                JsonIgnoreCondition.Never;
-            SharedWriteJsonOptionsWithNulls = writeJsonOptions;
+            var writeJsonOptionsWithNulls =
+                new JsonSerializerOptions(writeJsonOptions)
+                {
+                    DefaultIgnoreCondition = JsonIgnoreCondition.Never
+                };
+            SharedWriteJsonOptionsWithNulls = writeJsonOptionsWithNulls;
 
-            writeJsonOptions.DefaultIgnoreCondition =
-                JsonIgnoreCondition.WhenWritingNull;
-            SharedWriteJsonOptionsWithoutNulls = writeJsonOptions;
+            var writeJsonOptionsWithoutNulls =
+                new JsonSerializerOptions(writeJsonOptions)
+                {
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                };
+            SharedWriteJsonOptionsWithoutNulls = writeJsonOptionsWithoutNulls;
         }
 
         #endregion
@@ -82,7 +93,7 @@ namespace XamarinFiles.FancyLogger.Helpers
                     var debugMessage =
                         $"Unable to deserialize object of type {nameof(T)}: \"{str}\"";
                     var problemReport =
-                        ExtractProblemReport(exception,
+                        ExtractProblemReport(exception, Error, _appStateDetails,
                             developerMessages: new[] { debugMessage });
 
                     return (null, problemReport);
@@ -101,7 +112,7 @@ namespace XamarinFiles.FancyLogger.Helpers
                         $"Unable to cast object to type {nameof(T)}: \"{obj}\"";
 
                     var problemReport =
-                        ExtractProblemReport(exception,
+                        ExtractProblemReport(exception, Error, _appStateDetails,
                             developerMessages: new[] { debugMessage });
 
                     return (null, problemReport);
@@ -124,7 +135,7 @@ namespace XamarinFiles.FancyLogger.Helpers
                     $"Unable to serialize object of type {nameof(T)}: \"{typedObject}\"";
 
                 var problemReport =
-                    ExtractProblemReport(exception,
+                    ExtractProblemReport(exception, Error, _appStateDetails,
                         developerMessages: new[] { debugMessage });
 
                 return (null, problemReport);
