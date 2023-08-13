@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using static XamarinFiles.FancyLogger.Helpers.Characters;
+using static XamarinFiles.FancyLogger.Constants.Characters;
 
 namespace XamarinFiles.FancyLogger.Helpers
 {

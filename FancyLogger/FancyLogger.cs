@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Refit;
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ using XamarinFiles.PdHelpers.Refit.Models;
 using static System.Net.HttpStatusCode;
 using static System.Net.Sockets.SocketError;
 using static System.Net.WebExceptionStatus;
-using static XamarinFiles.FancyLogger.Helpers.Characters;
+using static XamarinFiles.FancyLogger.Constants.Characters;
 using static XamarinFiles.PdHelpers.Refit.Enums.ErrorOrWarning;
 
 namespace XamarinFiles.FancyLogger
