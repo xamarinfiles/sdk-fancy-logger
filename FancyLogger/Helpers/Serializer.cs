@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using XamarinFiles.PdHelpers.Refit.Models;
-using static XamarinFiles.PdHelpers.Refit.Enums.ErrorOrWarning;
+using static XamarinFiles.PdHelpers.Refit.Enums.ProblemLevel;
 using static XamarinFiles.PdHelpers.Refit.Extractors;
+
+// Ignore all JSON serialization/deserialization exceptions here as bad data
+#pragma warning disable CA1031
 
 namespace XamarinFiles.FancyLogger.Helpers
 {
@@ -12,18 +16,21 @@ namespace XamarinFiles.FancyLogger.Helpers
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     internal class Serializer
     {
-        private AppStateDetails?
-            _appStateDetails = AppStateDetails.Create(
-                "FancyLogger.Serializer", "ToJson<T>");
-
         #region Fields
+
+        private const string AssemblyName = "FancyLogger";
+
+        private const string ComponentName = "Serializer";
+
+        private const int DefaultMaxCharsOnError = 100;
 
         #endregion
 
         #region Constructor
 
         internal Serializer(JsonSerializerOptions readJsonOptions,
-            JsonSerializerOptions writeJsonOptions)
+            JsonSerializerOptions writeJsonOptions,
+            int maxCharsOnError = DefaultMaxCharsOnError)
         {
             SharedReadJsonOptions = readJsonOptions;
 
@@ -40,11 +47,15 @@ namespace XamarinFiles.FancyLogger.Helpers
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
                 };
             SharedWriteJsonOptionsWithoutNulls = writeJsonOptionsWithoutNulls;
+
+            SharedMaxCharsOnError = maxCharsOnError;
         }
 
         #endregion
 
         #region Properties
+
+        internal int SharedMaxCharsOnError { get; }
 
         internal JsonSerializerOptions SharedReadJsonOptions { get; }
 
@@ -57,13 +68,16 @@ namespace XamarinFiles.FancyLogger.Helpers
         #region Methods
 
         internal (string?, ProblemReport?)
-            ToJson<T>(object? obj, bool keepNulls = false)
+            ToJson<T>(object? obj, bool keepNulls = false,
+                int? overrideMaxCharsOnError = null)
         {
             if (obj is null)
                 // TODO Case where need to return message about null object?
                 return ("", null);
 
             T typedObject;
+            var typeName = typeof(T).Name;
+            var maxCharsOnError = overrideMaxCharsOnError ?? SharedMaxCharsOnError;
 
             // TODO Route when only simple object
 
@@ -89,12 +103,18 @@ namespace XamarinFiles.FancyLogger.Helpers
                 }
                 catch (Exception exception)
                 {
-                    // TODO Only show beginning of long string in debug message
-                    var debugMessage =
-                        $"Unable to deserialize object of type {nameof(T)}: \"{str}\"";
+                    var developerMessages =
+                        FormatDeveloperMessage(
+                            $"Unable to deserialize object of type {typeName}",
+                            str, maxCharsOnError);
+
                     var problemReport =
-                        ExtractProblemReport(exception, Error, _appStateDetails,
-                            developerMessages: new[] { debugMessage });
+                        ExtractProblemReport(exception,
+                            Error,
+                            assemblyName: AssemblyName,
+                            componentName: ComponentName,
+                            operationName: $"Deserialize Object of {typeName}",
+                            developerMessages: developerMessages);
 
                     return (null, problemReport);
                 }
@@ -107,13 +127,18 @@ namespace XamarinFiles.FancyLogger.Helpers
                 }
                 catch (Exception exception)
                 {
-                    // TODO Only show beginning of large object in debug message
-                    var debugMessage =
-                        $"Unable to cast object to type {nameof(T)}: \"{obj}\"";
+                    var developerMessages =
+                        FormatDeveloperMessage(
+                            $"Unable to cast object to type {typeName}",
+                            obj, maxCharsOnError);
 
                     var problemReport =
-                        ExtractProblemReport(exception, Error, _appStateDetails,
-                            developerMessages: new[] { debugMessage });
+                        ExtractProblemReport(exception,
+                            Error,
+                            assemblyName: AssemblyName,
+                            componentName: ComponentName,
+                            operationName: $"Cast Object to {typeName}",
+                            developerMessages: developerMessages);
 
                     return (null, problemReport);
                 }
@@ -130,13 +155,18 @@ namespace XamarinFiles.FancyLogger.Helpers
             }
             catch (Exception exception)
             {
-                // TODO Only show beginning of large object in debug message
-                var debugMessage =
-                    $"Unable to serialize object of type {nameof(T)}: \"{typedObject}\"";
+                var developerMessages =
+                    FormatDeveloperMessage(
+                        $"Unable to serialize object of type {typeName}",
+                        typedObject, maxCharsOnError);
 
                 var problemReport =
-                    ExtractProblemReport(exception, Error, _appStateDetails,
-                        developerMessages: new[] { debugMessage });
+                    ExtractProblemReport(exception,
+                        Error,
+                        assemblyName: AssemblyName,
+                        componentName: ComponentName,
+                        operationName: $"Serialize Object from {typeName}",
+                        developerMessages: developerMessages);
 
                 return (null, problemReport);
             }
@@ -147,6 +177,28 @@ namespace XamarinFiles.FancyLogger.Helpers
             return keepNulls
                 ? SharedWriteJsonOptionsWithNulls
                 : SharedWriteJsonOptionsWithoutNulls;
+        }
+
+        private static string[] FormatDeveloperMessage(string label, object obj,
+            int maxChars)
+        {
+            string message;
+
+            if (obj is string objStr)
+            {
+                var trimmedObjStr = objStr.Take(maxChars).ToString();
+
+                if (trimmedObjStr?.Length == maxChars)
+                    trimmedObjStr += "...";
+
+                message = $"{label}: \"{trimmedObjStr}\"";
+            }
+            else
+            {
+                message = $"{label}: \"{obj.GetType().Name}\"";
+            }
+
+            return new[] { message };
         }
 
         #endregion
