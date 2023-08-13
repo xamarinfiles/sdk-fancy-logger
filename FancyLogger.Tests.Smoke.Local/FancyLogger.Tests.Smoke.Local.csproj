@@ -17,6 +17,4 @@
 
   <Import Project="..\FancyLogger.Extensions\FancyLogger.Extensions.projitems" Label="Shared" />
 
-  <Import Project="..\FancyLogger.Tests.Smoke.Shared\FancyLogger.Tests.Smoke.Shared.projitems" Label="Shared" />
-
 </Project>

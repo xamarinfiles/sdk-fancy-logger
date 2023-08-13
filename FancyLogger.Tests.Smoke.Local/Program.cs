@@ -3,17 +3,16 @@
 using Refit;
 using System;
 using System.Diagnostics;
-using System.Net.Http;
 using System.Text.Json;
 using XamarinFiles.FancyLogger.Extensions;
 using XamarinFiles.FancyLogger.Options;
 using XamarinFiles.PdHelpers.Refit.Models;
 using static System.Net.HttpStatusCode;
 using static XamarinFiles.FancyLogger.FancyLogger;
-using static XamarinFiles.PdHelpers.Refit.Enums.DetailsVariant;
-using static XamarinFiles.PdHelpers.Refit.Enums.ErrorOrWarning;
+using static XamarinFiles.PdHelpers.Refit.Enums.ProblemLevel;
+using static XamarinFiles.PdHelpers.Refit.Enums.ProblemVariant;
 
-namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
+namespace XamarinFiles.FancyLogger.Tests.Smoke.Local
 {
     internal static class Program
     {
@@ -135,14 +134,9 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
             optionsPrefixFancyLogger.LogInfo(
                 "Test All Lines Prefix From Options");
 
-            //var argumentPrefixFancyLogger =
-            //    new FancyLogger(allLinesPrefix: "Argument Prefix",
-            //        allLinesPadLength: 20, loggerOptions: loggerOptions);
-            //argumentPrefixFancyLogger.LogInfo(
-            //    "Test All Lines Prefix From Arguments");
-
             var argumentPrefixFancyLogger =
-                new FancyLogger(allLinesPrefix: "Argument Prefix");
+                new FancyLogger(allLinesPrefix: "Argument Prefix",
+                    allLinesPadLength: 20, loggerOptions: loggerOptions);
             argumentPrefixFancyLogger.LogInfo(
                 "Test All Lines Prefix From Arguments");
         }
@@ -176,11 +170,11 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
         {
             FancyLogger!.LogSubsection("ProblemReport Logging Tests");
 
-            var fakeAppStateDetails =
-                AppStateDetails.Create("Login Page", "Authentication");
-            const string fakeUriStr = "/api/login";
-            var fakeHttpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Post, fakeUriStr);
+            const string fakeAssemblyName = "FancyLogger Smoke Tester";
+            const string fakeComponentName = "Login Page";
+            const string fakeOperationName = "Authentication";
+            const string fakeUriStr = "/api/authentication/login";
+            const string fakeControllerName = "Authentication";
             const string fakeResourceName = "Login";
 
             // 400 - BadRequest - Error
@@ -189,9 +183,11 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
                 ProblemReport.Create(BadRequest,
                     ValidationProblem,
                     Error,
-                    fakeAppStateDetails,
-                    fakeHttpRequestMessage,
-                    fakeResourceName,
+                    fakeAssemblyName,
+                    fakeComponentName,
+                    fakeOperationName,
+                    controllerName: fakeControllerName,
+                    resourceName: fakeResourceName,
                     title: LoginFailedTitle,
                     detail: "Invalid fields: Username, Password",
                     instance: fakeUriStr,
@@ -202,8 +198,7 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
                     },
                     userMessages: LoginFailedUserMessages);
 
-            FancyLogger.LogProblemReport(badRequestProblem, Error);
-            //FancyLogger.LogObject<ProblemReport>(badRequestProblem);
+            FancyLogger.LogProblemReport(badRequestProblem);
 
             // 401 - Unauthorized - Warning
 
@@ -211,16 +206,19 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Shared
                 ProblemReport.Create(Unauthorized,
                     GenericProblem,
                     Warning,
-                    fakeAppStateDetails,
-                    fakeHttpRequestMessage,
-                    fakeResourceName,
+                    fakeAssemblyName,
+                    fakeComponentName,
+                    fakeOperationName,
+                    controllerName: fakeControllerName,
+                    resourceName: fakeResourceName,
                     title: LoginFailedTitle,
                     detail : "Username and/or Password do not match",
                     instance: fakeUriStr,
                     userMessages: LoginFailedUserMessages);
 
-            FancyLogger.LogProblemReport(unauthorizedProblem, Warning);
-            //FancyLogger.LogObject<ProblemReport>(unauthorizedProblem);
+            FancyLogger.LogProblemReport(unauthorizedProblem);
+
+            // TODO Add other ProblemDetails tests from other repo
         }
 
         private static void TestStructuralLoggingMethods()
