@@ -38,7 +38,7 @@ namespace XamarinFiles.FancyLogger
         void LogError(string format, bool addIndent = false,
             bool newLineAfter = true, params object[] args);
 
-        void LogErrorOrWarning(ErrorOrWarning errorOrWarning, string format,
+        void LogErrorOrWarning(ProblemLevel problemLevel, string format,
             bool addIndent = false, bool newLineAfter = true,
             params object[] args);
 
@@ -63,10 +63,9 @@ namespace XamarinFiles.FancyLogger
         #region Specialized Logging
 
         void LogProblemDetails(ProblemDetails? problemDetails,
-            ErrorOrWarning errorOrWarning);
+            ProblemLevel problemLevel);
 
-        void LogProblemReport(ProblemReport? problemReport,
-            ErrorOrWarning errorOrWarning);
+        void LogProblemReport(ProblemReport? problemReport);
 
         #endregion
 
