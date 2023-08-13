@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
 using static System.Globalization.CultureInfo;
-using static XamarinFiles.FancyLogger.Helpers.Characters;
+using static XamarinFiles.FancyLogger.Constants.Characters;
 
 // TODO Add blanks to labels based on difference in lengths instead of indent
 

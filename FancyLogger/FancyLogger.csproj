@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>3.0.0</Version>
+    <Version>3.1.1</Version>
     <Copyright>Copyright © 2023 The Xamarin Files, Andy Lech</Copyright>
     <TargetFrameworks>netstandard2.0;netcoreapp3.1;net5.0;net6.0;net7.0</TargetFrameworks>
     <LangVersion>9.0</LangVersion>
@@ -22,14 +22,16 @@
     <PackageIcon>The-Xamarin-Files.png</PackageIcon>
     <AssemblyName>XamarinFiles.$(MSBuildProjectName)</AssemblyName>
     <RootNamespace>XamarinFiles.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <IncludeSymbols>True</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>6.0-all</AnalysisLevel>
     <!-- Suppress warnings to upgrade TargetFramework to net6.0 or later until done with XF -->
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
@@ -54,7 +56,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
     <PackageReference Include="Refit" Version="7.0.0" />
-    <PackageReference Include="XamarinFiles.PdHelpers.Refit" Version="3.0.1" />
+    <PackageReference Include="XamarinFiles.PdHelpers.Refit" Version="4.0.4" />
   </ItemGroup>
 
 </Project>

@@ -16,8 +16,17 @@ using XamarinFiles.PdHelpers.Refit.Models;
 using static System.Net.HttpStatusCode;
 using static System.Net.Sockets.SocketError;
 using static System.Net.WebExceptionStatus;
-using static XamarinFiles.FancyLogger.Helpers.Characters;
-using static XamarinFiles.PdHelpers.Refit.Enums.ErrorOrWarning;
+using static XamarinFiles.FancyLogger.Constants.Characters;
+using static XamarinFiles.PdHelpers.Refit.Enums.ProblemLevel;
+
+// Ignore specialized exception processing since purpose is structural logging
+#pragma warning disable CA1031
+
+// Using complex IFormatProvider misses whole point of FL for structural logging
+#pragma warning disable CA1305
+
+// Using LoggerMessage delegates misses whole point of FL for structural logging
+#pragma warning disable CA1848
 
 namespace XamarinFiles.FancyLogger
 {
@@ -111,7 +120,6 @@ namespace XamarinFiles.FancyLogger
 
                 FooterLinesPadLength = LoggerOptions.FooterLines.PadLength;
                 FooterLinesPadString = LoggerOptions.FooterLines.PadString;
-
 
                 _logger = logger ?? LoggerCreator.CreateLogger(
                     AllLinesPrefixString, AllLinesPadLength,
@@ -323,7 +331,7 @@ namespace XamarinFiles.FancyLogger
                 if (newLineAfter)
                     message += NewLine;
 
-                _logger.LogDebug("{message}", message);
+                _logger.LogDebug("{Message}", message);
 
             }
             catch (Exception exception)
@@ -342,14 +350,14 @@ namespace XamarinFiles.FancyLogger
             if (newLineAfter)
                 message += NewLine;
 
-            _logger.LogError("{message}", message);
+            _logger.LogError("{Message}", message);
         }
 
-        public void LogErrorOrWarning(ErrorOrWarning errorOrWarning,
+        public void LogErrorOrWarning(ProblemLevel problemLevel,
             string format, bool addIndent = true, bool newLineAfter = true,
             params object[] args)
         {
-            switch (errorOrWarning)
+            switch (problemLevel)
             {
                 case Error:
                     LogError(format, addIndent, newLineAfter, args);
@@ -360,8 +368,8 @@ namespace XamarinFiles.FancyLogger
 
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(errorOrWarning),
-                        errorOrWarning, null);
+                    throw new ArgumentOutOfRangeException(nameof(problemLevel),
+                        problemLevel, null);
             }
         }
 
@@ -373,7 +381,7 @@ namespace XamarinFiles.FancyLogger
             if (newLineAfter)
                 message += NewLine;
 
-            _logger.LogInformation("{message}", message);
+            _logger.LogInformation("{Message}", message);
         }
 
         public void LogObject<T>(object? obj, bool ignore = false,
@@ -389,7 +397,7 @@ namespace XamarinFiles.FancyLogger
                     _serializer.ToJson<T>(obj, keepNulls);
 
                 if (problemReport != null)
-                    LogProblemReport(problemReport, Error);
+                    LogProblemReport(problemReport);
 
                 if (string.IsNullOrWhiteSpace(formattedJson))
                     return;
@@ -416,7 +424,7 @@ namespace XamarinFiles.FancyLogger
             if (newLineAfter)
                 message += NewLine;
 
-            _logger.LogDebug("{message}", message);
+            _logger.LogDebug("{Message}", message);
         }
 
         public void LogTrace(string format, bool addIndent = false,
@@ -435,7 +443,7 @@ namespace XamarinFiles.FancyLogger
             if (newLineAfter)
                 message += NewLine;
 
-            _logger.LogTrace("{message}", message);
+            _logger.LogTrace("{Message}", message);
         }
 
         public void LogWarning(string format, bool addIndent = true,
@@ -448,7 +456,7 @@ namespace XamarinFiles.FancyLogger
             if (newLineAfter)
                 message += NewLine;
 
-            _logger.LogWarning("{message}", message);
+            _logger.LogWarning("{Message}", message);
         }
 
         #endregion
@@ -457,33 +465,35 @@ namespace XamarinFiles.FancyLogger
 
         // TODO Fix column alignments
         public void LogProblemDetails(ProblemDetails? problemDetails,
-            ErrorOrWarning errorOrWarning)
+            ProblemLevel problemLevel)
         {
             if (problemDetails == null)
                 return;
 
             try
             {
-                LogErrorOrWarning(errorOrWarning, "PROBLEMDETAILS",
-                    newLineAfter:false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"Status Code: {Indent}{problemDetails.Status}",
-                    newLineAfter:false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"Title: {Indent}'{problemDetails.Title}'",
-                    newLineAfter:false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"Detail: {Indent}'{problemDetails.Detail}'",
-                    newLineAfter:false);
-                LogErrorOrWarning(errorOrWarning,
+                LogErrorOrWarning(problemLevel, "PROBLEMDETAILS",
+                    newLineAfter: false);
+                LogErrorOrWarning(problemLevel,
+                    $"Status: {Indent}{Indent}{problemDetails.Status}",
+                    newLineAfter: false);
+                LogErrorOrWarning(problemLevel,
+                    $"Title: {Indent}{Indent}{Indent}'{problemDetails.Title}'",
+                    newLineAfter: false);
+                LogErrorOrWarning(problemLevel,
+                    $"Detail: {Indent}{Indent}'{problemDetails.Detail}'",
+                    newLineAfter: false);
+                LogErrorOrWarning(problemLevel,
                     $"Instance URL: {Indent}'{problemDetails.Instance}'",
-                    newLineAfter: true);
-
-                LogDebug($"Type Info: {Indent}'{problemDetails.Type}'",
+                    newLineAfter: false);
+                LogErrorOrWarning(problemLevel,
+                    $"Type Info: {Indent}{Indent}'{problemDetails.Type}'",
                     addIndent: true);
+
                 LogObject<Dictionary<string, object>>(
                     problemDetails.Extensions, label: "Extensions Dictionary",
-                    newLineAfter: false);
+                    newLineAfter: true);
+
                 LogObject<Dictionary<string, string[]>>(
                     problemDetails.Errors, label: "Errors Dictionary",
                     newLineAfter: true);
@@ -495,61 +505,92 @@ namespace XamarinFiles.FancyLogger
         }
 
         // TODO Fix column alignments
-        public void LogProblemReport(ProblemReport? problemReport,
-            ErrorOrWarning errorOrWarning)
+        // TODO Workaround last field in block being null
+        public void LogProblemReport(ProblemReport? problemReport)
         {
             if (problemReport == null)
                 return;
 
+            var problemLevel = problemReport.ProblemLevelEnum;
+
             try
             {
-                LogErrorOrWarning(errorOrWarning,
-                    $"Variant: {Indent}'{problemReport.DetailsVariantName}'",
-                    newLineAfter:false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"Error or Warning: '{problemReport.ErrorOrWarning}'",
-                    newLineAfter:true);
-
-                var appStateDetails = problemReport.AppStateDetails;
-                LogErrorOrWarning(errorOrWarning,
-                    $"App Location: {Indent}'{appStateDetails?.Location}'",
+                LogErrorOrWarning(problemLevel,
+                    $"Problem Variant: {Indent}{problemReport.ProblemVariant}",
                     newLineAfter: false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"App Operation: {Indent}'{appStateDetails?.Operation}'",
+                LogErrorOrWarning(problemLevel,
+                    $"Problem Level: {Indent}{Indent}{problemReport.ProblemLevel}",
                     newLineAfter: true);
+
+                var sourceDetails = problemReport.SourceDetails;
+                if (sourceDetails is not null)
+                {
+                    LogErrorOrWarning(problemLevel,
+                        $"Source Assembly: {Indent}'{sourceDetails.AssemblyName}'",
+                        newLineAfter: false);
+                    LogErrorOrWarning(problemLevel,
+                        $"Source Component: {Indent}'{sourceDetails.ComponentName}'",
+                        newLineAfter: false);
+                    LogErrorOrWarning(problemLevel,
+                        $"Source Operation: {Indent}'{sourceDetails.OperationName}'",
+                        newLineAfter: true);
+                }
+
+                var exceptionDetails = problemReport.ExceptionDetails;
+                if (exceptionDetails is not null)
+                {
+                    LogErrorOrWarning(problemLevel,
+                        $"Exception Assembly: {Indent}'{exceptionDetails.Assembly}'",
+                        newLineAfter: false);
+                    LogErrorOrWarning(problemLevel,
+                        $"Exception Method: {Indent}'{exceptionDetails.Method}'",
+                        newLineAfter: false);
+                    LogObject<ExceptionMessages>(exceptionDetails.Messages,
+                        label: "Exception Messages",
+                        newLineAfter: true);
+                }
 
                 var requestDetails = problemReport.RequestDetails;
-                LogErrorOrWarning(errorOrWarning,
-                    $"Request Method: {Indent}'{requestDetails?.HttpMethodName}'",
-                    newLineAfter: false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"Request Resource: {Indent}'{requestDetails?.ResourceName}'",
-                    newLineAfter: false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"Request Uri: {Indent}'{requestDetails?.UriString}'",
-                    newLineAfter: true);
+                if (requestDetails is not null)
+                {
+                    LogErrorOrWarning(problemLevel,
+                        $"Request Method: {Indent}'{requestDetails.Method}'",
+                        newLineAfter: false);
+                    LogErrorOrWarning(problemLevel,
+                        $"Request Uri: {Indent}{Indent}'{requestDetails.Uri}'",
+                        newLineAfter: false);
+                    LogErrorOrWarning(problemLevel,
+                        $"Request Controller: {Indent}'{requestDetails.Controller}'",
+                        newLineAfter: false);
+                    LogErrorOrWarning(problemLevel,
+                        $"Request Resource: {Indent}'{requestDetails.Resource}'",
+                        newLineAfter: true);
+                }
 
                 var responseDetails = problemReport.ResponseDetails;
-                LogErrorOrWarning(errorOrWarning,
-                    $"Status Code: {Indent}{responseDetails.StatusCodeInt}"
-                    + $" - {responseDetails.StatusTitle}",
-                    newLineAfter:false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"Title: {Indent}'{responseDetails.ProblemSummary}'",
-                    newLineAfter:false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"Detail: {Indent}'{responseDetails.ProblemExplanation}'",
-                    newLineAfter:false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"Instance URL: {Indent}'{responseDetails.InstanceUri}'",
-                    newLineAfter: false);
-                LogErrorOrWarning(errorOrWarning,
-                    $"Type Info: {Indent}'{responseDetails.StatusReference}'",
-                    newLineAfter: false);
+                if (responseDetails is not null)
+                {
+                    LogErrorOrWarning(problemLevel,
+                        $"Status: {Indent}{Indent}{responseDetails.StatusCodeInt}"
+                        + $" - {responseDetails.StatusTitle}",
+                        newLineAfter: false);
+                    LogErrorOrWarning(problemLevel,
+                        $"Title: {Indent}{Indent}{Indent}'{responseDetails.ProblemSummary}'",
+                        newLineAfter: false);
+                    LogErrorOrWarning(problemLevel,
+                        $"Detail: {Indent}{Indent}'{responseDetails.ProblemExplanation}'",
+                        newLineAfter: false);
+                    LogErrorOrWarning(problemLevel,
+                        $"Instance URL: {Indent}'{responseDetails.InstanceUri}'",
+                        newLineAfter: false);
+                    LogErrorOrWarning(problemLevel,
+                        $"Type Info: {Indent}{Indent}'{responseDetails.StatusReference}'",
+                        newLineAfter: true);
+                }
 
-                LogObject<Messages>(problemReport.ImportantMessages,
+                LogObject<OtherMessages>(problemReport.OtherMessages,
                     label: "Messages",
-                    newLineAfter: false);
+                    newLineAfter: true);
                 // TODO
                 //LogObject<Dictionary<string, object>>(
                 //    problemReport.Extensions, label: "Extensions Dictionary",
