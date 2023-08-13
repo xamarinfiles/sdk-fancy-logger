@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Version>3.0.0</Version>
@@ -22,14 +22,16 @@
     <PackageIcon>The-Xamarin-Files.png</PackageIcon>
     <AssemblyName>XamarinFiles.$(MSBuildProjectName)</AssemblyName>
     <RootNamespace>XamarinFiles.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <IncludeSymbols>True</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>6.0-all</AnalysisLevel>
     <!-- Suppress warnings to upgrade TargetFramework to net6.0 or later until done with XF -->
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
