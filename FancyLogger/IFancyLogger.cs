@@ -13,20 +13,20 @@ namespace XamarinFiles.FancyLogger
 
         // Exception Router
 
-        void LogException(Exception exception);
+        void LogException(Exception? exception);
 
         // Direct Access
 
-        void LogApiException(ApiException apiException);
+        void LogApiException(ApiException? apiException);
 
-        void LogCommonException(Exception exception, string outerLabel,
+        void LogCommonException(Exception? exception, string outerLabel,
             string innerLabel = "INNER EXCEPTION");
 
-        void LogGeneralException(Exception exception);
+        void LogGeneralException(Exception? exception);
 
-        void LogHttpRequestException(HttpRequestException requestException);
+        void LogHttpRequestException(HttpRequestException? requestException);
 
-        void LogJsonException(JsonException jsonException);
+        void LogJsonException(JsonException? jsonException);
 
         #endregion
 
