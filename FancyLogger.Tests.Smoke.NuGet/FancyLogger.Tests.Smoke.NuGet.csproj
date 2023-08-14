@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="XamarinFiles.FancyLogger" Version="3.2.0" />
+    <PackageReference Include="XamarinFiles.FancyLogger" Version="3.2.1" />
   </ItemGroup>
 
   <Import Project="..\FancyLogger.Extensions\FancyLogger.Extensions.projitems" Label="Shared" />
