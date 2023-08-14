@@ -177,8 +177,11 @@ namespace XamarinFiles.FancyLogger
         // Exception Router
 
         // TODO Add toggle for LogError vs LogWarning
-        public void LogException(Exception exception)
+        public void LogException(Exception? exception)
         {
+            if (exception is null)
+                return;
+
             switch (exception)
             {
                 case ValidationApiException validationException:
@@ -209,7 +212,7 @@ namespace XamarinFiles.FancyLogger
         // TODO Log other details of ApiException
         public void LogApiException(ApiException? apiException)
         {
-            if (apiException == null)
+            if (apiException is null)
                 return;
 
             var request = apiException.RequestMessage;
@@ -244,7 +247,7 @@ namespace XamarinFiles.FancyLogger
             LogWarning($"{Indent}{innerLabel}:  {innerExceptionMessage}{NewLine}");
         }
 
-        public void LogGeneralException(Exception exception)
+        public void LogGeneralException(Exception? exception)
         {
             LogCommonException(exception, "EXCEPTION");
         }
@@ -252,7 +255,7 @@ namespace XamarinFiles.FancyLogger
         [SuppressMessage("ReSharper", "MergeIntoPattern")]
         public void LogHttpRequestException(HttpRequestException? requestException)
         {
-            if (requestException == null)
+            if (requestException is null)
                 return;
 
             const string outerExceptionLabel = "HTTP REQUEST EXCEPTION";
@@ -396,7 +399,7 @@ namespace XamarinFiles.FancyLogger
                 var (formattedJson, problemReport) =
                     _serializer.ToJson<T>(obj, keepNulls);
 
-                if (problemReport != null)
+                if (problemReport is null)
                     LogProblemReport(problemReport);
 
                 if (string.IsNullOrWhiteSpace(formattedJson))
@@ -467,7 +470,7 @@ namespace XamarinFiles.FancyLogger
         public void LogProblemDetails(ProblemDetails? problemDetails,
             ProblemLevel problemLevel)
         {
-            if (problemDetails == null)
+            if (problemDetails is null)
                 return;
 
             try
@@ -508,7 +511,7 @@ namespace XamarinFiles.FancyLogger
         // TODO Workaround last field in block being null
         public void LogProblemReport(ProblemReport? problemReport)
         {
-            if (problemReport == null)
+            if (problemReport is null)
                 return;
 
             var problemLevel = problemReport.ProblemLevelEnum;
