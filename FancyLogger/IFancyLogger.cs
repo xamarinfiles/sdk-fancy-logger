@@ -1,5 +1,6 @@
 using Refit;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Text.Json;
 using XamarinFiles.PdHelpers.Refit.Enums;
@@ -7,6 +8,7 @@ using XamarinFiles.PdHelpers.Refit.Models;
 
 namespace XamarinFiles.FancyLogger
 {
+    [SuppressMessage("ReSharper", "UnusedMemberInSuper.Global")]
     public interface IFancyLogger
     {
         #region Exceptions
@@ -52,6 +54,7 @@ namespace XamarinFiles.FancyLogger
         void LogScalar(string label, string? value,  bool addIndent = false,
             bool newLineAfter = false);
 
+        [SuppressMessage("ReSharper", "UnusedMember.Global")]
         void LogTrace(string format, bool addIndent = false,
             bool newLineAfter = false, params object[] args);
 

@@ -1,5 +1,8 @@
-﻿namespace XamarinFiles.FancyLogger.Options
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace XamarinFiles.FancyLogger.Options
 {
+    [SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
     public class FancyLoggerOptions
     {
         public LinePrefix AllLines { get; set; } =
