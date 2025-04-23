@@ -2,7 +2,9 @@ using Refit;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using XamarinFiles.FancyLogger.Options;
 using XamarinFiles.PdHelpers.Refit.Enums;
 using XamarinFiles.PdHelpers.Refit.Models;
 
@@ -11,6 +13,18 @@ namespace XamarinFiles.FancyLogger
     [SuppressMessage("ReSharper", "UnusedMemberInSuper.Global")]
     public interface IFancyLogger
     {
+        #region Options
+
+        FancyLoggerOptions LoggerOptions { get; }
+
+        JsonSerializerOptions ReadJsonOptions { get; }
+
+        JavaScriptEncoder WriteJavaScriptEncoder { get; }
+
+        JsonSerializerOptions WriteJsonOptions { get; }
+
+        #endregion
+
         #region Exceptions
 
         // Exception Router
