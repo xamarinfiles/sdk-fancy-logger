@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Refit;
 using System;
 using System.Collections.Generic;
@@ -7,8 +7,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Unicode;
 using XamarinFiles.FancyLogger.Helpers;
 using XamarinFiles.FancyLogger.Options;
 using XamarinFiles.PdHelpers.Refit.Enums;
@@ -55,10 +57,16 @@ namespace XamarinFiles.FancyLogger
                 PropertyNameCaseInsensitive = true
             };
 
+        public static readonly JavaScriptEncoder
+            DefaultWriteJavaScriptEncoder =
+                JavaScriptEncoder.Create(
+                    new TextEncoderSettings(UnicodeRanges.All));
+
         public static readonly JsonSerializerOptions
             DefaultWriteJsonOptions = new()
             {
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                Encoder = DefaultWriteJavaScriptEncoder,
                 WriteIndented = true
             };
 
@@ -78,9 +86,10 @@ namespace XamarinFiles.FancyLogger
             // All overrides => create path to override all options at once
             FancyLoggerOptions? loggerOptions = null,
 
-            // Serializer overrides  => System.Text.Json options for LogObject
+            // Serializer overrides => System.Text.Json options for LogObject
             JsonSerializerOptions? readJsonOptions = null,
-            JsonSerializerOptions? writeJsonOptions = null)
+            JsonSerializerOptions? writeJsonOptions = null,
+            JavaScriptEncoder? writeJavaScriptEncoder = null)
         {
             try
             {
@@ -91,12 +100,22 @@ namespace XamarinFiles.FancyLogger
                 }
                 if (allLinesPadLength is not null)
                 {
-                    loggerOptions.AllLines.PadLength = (int) allLinesPadLength;
+                    loggerOptions.AllLines.PadLength = (int)allLinesPadLength;
                 }
                 LoggerOptions = loggerOptions;
 
                 ReadJsonOptions = readJsonOptions ?? DefaultReadOptions;
-                WriteJsonOptions = writeJsonOptions ?? DefaultWriteJsonOptions;
+                if (writeJavaScriptEncoder is not null)
+                {
+                    WriteJavaScriptEncoder = writeJavaScriptEncoder;
+                    WriteJsonOptions =
+                        GetWriteJsonOptions(WriteJavaScriptEncoder);
+                }
+                else
+                {
+                    WriteJavaScriptEncoder = DefaultWriteJavaScriptEncoder;
+                    WriteJsonOptions = writeJsonOptions ?? DefaultWriteJsonOptions;
+                }
 
                 // Map Shorthand Properties
                 AllLinesPrefixString = LoggerOptions.AllLines.PrefixString;
@@ -144,31 +163,33 @@ namespace XamarinFiles.FancyLogger
 
         public JsonSerializerOptions ReadJsonOptions { get; }
 
+        public JavaScriptEncoder WriteJavaScriptEncoder { get; }
+
         public JsonSerializerOptions WriteJsonOptions { get; }
 
         // FancyLoggerOptions Values
 
-        public string AllLinesPrefixString { get; private set; }
-        public int AllLinesPadLength { get; private set; }
-        public string AllLinesPadString { get; private set; }
+        public string AllLinesPrefixString { get; }
+        public int AllLinesPadLength { get; }
+        public string AllLinesPadString { get; }
 
-        public int LongDividerLinesPadLength { get; private set; }
-        public string LongDividerLinesPadString { get; private set; }
+        public int LongDividerLinesPadLength { get; }
+        public string LongDividerLinesPadString { get; }
 
-        public int ShortDividerLinesPadLength { get; private set; }
-        public string ShortDividerLinesPadString { get; private set; }
+        public int ShortDividerLinesPadLength { get; }
+        public string ShortDividerLinesPadString { get; }
 
-        public int SectionLinesPadLength { get; private set; }
-        public string SectionLinesPadString { get; private set; }
+        public int SectionLinesPadLength { get; }
+        public string SectionLinesPadString { get; }
 
-        public int SubsectionLinesPadLength { get; private set; }
-        public string SubsectionLinesPadString { get; private set; }
+        public int SubsectionLinesPadLength { get; }
+        public string SubsectionLinesPadString { get; }
 
-        public int HeaderLinesPadLength { get; private set; }
-        public string HeaderLinesPadString { get; private set; }
+        public int HeaderLinesPadLength { get; }
+        public string HeaderLinesPadString { get; }
 
-        public int FooterLinesPadLength { get; private set; }
-        public string FooterLinesPadString { get; private set; }
+        public int FooterLinesPadLength { get; }
+        public string FooterLinesPadString { get; }
 
         #endregion
 
@@ -405,8 +426,12 @@ namespace XamarinFiles.FancyLogger
                 if (string.IsNullOrWhiteSpace(formattedJson))
                     return;
 
-                LogDebug(AddIndent(addIndent) + $"{label}:" + NewLine
-                    + formattedJson, newLineAfter: newLineAfter);
+                var message = "";
+                if (!string.IsNullOrWhiteSpace(label))
+                    message += AddIndent(addIndent) + $"{label}:";
+                message += NewLine + formattedJson;
+
+                LogDebug(message, newLineAfter: newLineAfter);
             }
             catch (Exception exception)
             {
@@ -686,6 +711,17 @@ namespace XamarinFiles.FancyLogger
         {
             // Optional ident for nesting
             return addExtraIndent ? Indent : "";
+        }
+
+        private static JsonSerializerOptions GetWriteJsonOptions(
+            JavaScriptEncoder javaScriptEncoder)
+        {
+            return new JsonSerializerOptions()
+            {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                Encoder = javaScriptEncoder,
+                WriteIndented = true
+            };
         }
 
         #endregion

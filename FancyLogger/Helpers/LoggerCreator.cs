@@ -1,5 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Logging;
 using static XamarinFiles.FancyLogger.Constants.Characters;
+
+// Using LoggerMessage delegates misses whole point of FL for structural logging
+#pragma warning disable CA1848
 
 namespace XamarinFiles.FancyLogger.Helpers
 {
@@ -9,12 +13,16 @@ namespace XamarinFiles.FancyLogger.Helpers
 
         // TODO See CreateLogger(ILoggerFactory, Type) in Microsoft Learn
         // For instantiated classes with default prefix of simple class name
+        [SuppressMessage("ReSharper", "UnusedMember.Global")]
         internal static ILogger CreateLogger<T>() where T : class
         {
             var loggerFactory = CreateLoggerFactory();
-            var logger = loggerFactory.CreateLogger<T>();
 
-            logger.LogInformation("Logger created" + NewLine);
+            var logger = loggerFactory.CreateLogger<T>();
+            logger.LogInformation("{Indent}Logger created{NewLine}",
+                Indent, NewLine);
+
+            loggerFactory.Dispose();
 
             return logger;
         }
@@ -28,9 +36,12 @@ namespace XamarinFiles.FancyLogger.Helpers
                 categoryName.PadRight(prefixPadLength, prefixPadString);
 
             var loggerFactory = CreateLoggerFactory();
-            var logger = loggerFactory.CreateLogger(paddedCategoryName);
 
-            logger.LogInformation(Indent + "Logger created" + NewLine);
+            var logger = loggerFactory.CreateLogger(paddedCategoryName);
+            logger.LogInformation("{Indent}Logger created{NewLine}",
+                Indent, NewLine);
+
+            loggerFactory.Dispose();
 
             return logger;
         }
@@ -41,7 +52,6 @@ namespace XamarinFiles.FancyLogger.Helpers
 
         private static ILoggerFactory CreateLoggerFactory()
         {
-            // Create a logger factory
             var loggerFactory = LoggerFactory.Create(
                 builder => builder
                     .AddDebug()

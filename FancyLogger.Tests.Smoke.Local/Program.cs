@@ -3,6 +3,7 @@
 using Refit;
 using System;
 using System.Diagnostics;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using XamarinFiles.FancyLogger.Extensions;
 using XamarinFiles.FancyLogger.Options;
@@ -91,6 +92,8 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Local
 #if ASSEMBLY_LOGGING
                 AssemblyLogger?.LogAssemblies(showCultureInfo: true);
 #endif
+                PrintLoggerOptionsAndEncoder();
+
                 FancyLogger.LogSection("Run FancyLogger Tests");
 
                 // TODO Add updated test set from old Fancy Logger
@@ -105,6 +108,48 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Local
             {
                 FancyLogger?.LogException(exception);
             }
+        }
+
+        #endregion
+
+        #region Options
+
+        private static void PrintLoggerOptionsAndEncoder()
+        {
+            FancyLogger!.LogSection("Print Logger Options and Encoder");
+
+            // LoggerOptions
+
+            FancyLogger!.LogSection("Print LoggerOptions");
+
+            var loggerOptions = FancyLogger!.LoggerOptions;
+
+            FancyLogger.LogObject<FancyLoggerOptions>(loggerOptions);
+
+            // ReadJsonOptions
+
+            FancyLogger!.LogSection("Print ReadJsonOptions");
+
+            var readJsonOptions = FancyLogger.ReadJsonOptions;
+
+            FancyLogger.LogObject<JsonSerializerOptions>(readJsonOptions);
+
+            // WriteJsonOptions
+
+            FancyLogger!.LogSection("Print WriteJsonOptions");
+
+            var writeJsonOptions = FancyLogger.WriteJsonOptions;
+
+            FancyLogger.LogObject<JsonSerializerOptions>(writeJsonOptions);
+
+            // JavaScriptEncoder
+
+            FancyLogger!.LogSection("Print JavaScriptEncoder");
+
+            var javaScriptEncoder = FancyLogger!.WriteJavaScriptEncoder;
+            //var unicode = javaScriptEncoder
+
+            FancyLogger.LogObject<JavaScriptEncoder>(javaScriptEncoder);
         }
 
         #endregion
@@ -212,7 +257,7 @@ namespace XamarinFiles.FancyLogger.Tests.Smoke.Local
                     controllerName: fakeControllerName,
                     resourceName: fakeResourceName,
                     title: LoginFailedTitle,
-                    detail : "Username and/or Password do not match",
+                    detail: "Username and/or Password do not match",
                     instance: fakeUriStr,
                     userMessages: LoginFailedUserMessages);
 

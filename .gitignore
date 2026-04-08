@@ -26,6 +26,7 @@ x86/
 [Ww][Ii][Nn]32/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
+[Aa][Rr][Mm]64[Ee][Cc]/
 bld/
 [Bb]in/
 [Oo]bj/
@@ -82,6 +83,8 @@ StyleCopReport.xml
 *.pgc
 *.pgd
 *.rsp
+# but not Directory.Build.rsp, as it configures directory-level build defaults
+!Directory.Build.rsp
 *.sbr
 *.tlb
 *.tli
@@ -153,6 +156,7 @@ coverage*.info
 
 # NCrunch
 _NCrunch_*
+.NCrunch_*
 .*crunch*.local.xml
 nCrunchTemp_*
 
@@ -184,7 +188,7 @@ publish/
 *.azurePubxml
 # Note: Comment the next line if you want to checkin your web deploy settings,
 # but database connection strings (with potential passwords) will be unencrypted
-#*.pubxml
+*.pubxml
 *.publishproj
 
 # Microsoft Azure Web App publish settings. Comment the next line if you want to
@@ -354,6 +358,9 @@ ASALocalRun/
 # MSBuild Binary and Structured Log
 *.binlog
 
+# AWS SAM Build and Temporary Artifacts folder
+.aws-sam
+
 # NVidia Nsight GPU debugger configuration file
 *.nvuser
 
@@ -399,11 +406,13 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-# Android resource file
+# Android files
+*.keystore.*
 Resource.designer.cs
 
 # macOS files
 .DS_Store
 
-# Temporary folder for unused code and data
+# Unused code and data
 \@Archive/
+\@ Archive/
